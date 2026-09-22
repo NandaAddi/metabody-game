@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 import LauncherView from "./views/LauncherView";
 import BridgingVideoView from "./views/BridgingVideoView";
 import ArenaView from "./views/ArenaView";
@@ -11,7 +11,7 @@ import GameAspectShell from "./components/GameAspectShell";
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         {/* Portal Peluncur Pemilihan Peran (Rasio 16:9 Terkunci) */}
         <Route path="/" element={<GameAspectShell><LauncherView /></GameAspectShell>} />
@@ -35,6 +35,6 @@ export default function App() {
         {/* Galeri Showcase Glossy Game UI Kit */}
         <Route path="/ui-kit" element={<GameUIShowcase />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
