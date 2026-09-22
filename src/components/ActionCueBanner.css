@@ -1,0 +1,159 @@
+/* ==========================================================================
+   ActionCueBanner.css — Floating Real-Time Action Cue Banner for IFP
+   ========================================================================== */
+
+.action-cue-banner-wrapper {
+  position: absolute;
+  top: 76px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: none;
+  outline: none;
+  border-radius: var(--radius-full);
+  padding: 6px 18px 6px 8px;
+  margin: 0;
+  width: fit-content;
+  max-width: 90%;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: cueSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 45;
+  pointer-events: auto;
+}
+
+@keyframes cueSlideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-14px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+/* Priority Theme Variants (Clean Borders) */
+.action-cue-banner-wrapper.cue-normal {
+  border: 1.5px solid rgba(56, 189, 248, 0.45);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.action-cue-banner-wrapper.cue-warning {
+  border: 1.5px solid rgba(245, 158, 11, 0.6);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  animation: cueSlideDown 0.4s ease, cuePulseWarning 2s infinite ease-in-out;
+}
+
+.action-cue-banner-wrapper.cue-critical {
+  border: 2px solid rgba(239, 68, 68, 0.75);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+  animation: cueSlideDown 0.4s ease, cuePulseCritical 1.2s infinite ease-in-out;
+}
+
+@keyframes cuePulseWarning {
+  0%, 100% {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    transform: translateX(-50%) scale(1.015);
+  }
+}
+
+@keyframes cuePulseCritical {
+  0%, 100% {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+    transform: translateX(-50%) scale(1.02);
+  }
+}
+
+/* Badge Label */
+.action-cue-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.cue-normal .action-cue-badge {
+  background: linear-gradient(135deg, #0EA5E9, #0284C7);
+  color: #FFFFFF;
+}
+
+.cue-warning .action-cue-badge {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: #FFFFFF;
+}
+
+.cue-critical .action-cue-badge {
+  background: linear-gradient(135deg, #EF4444, #DC2626);
+  color: #FFFFFF;
+}
+
+/* Content */
+.action-cue-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.action-cue-station-tag {
+  background: rgba(255, 255, 255, 0.12);
+  color: #E2E8F0;
+  padding: 3px 9px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.action-cue-instruction {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: #FFFFFF;
+}
+
+.action-cue-label {
+  color: #F8FAFC;
+  font-size: 0.92rem;
+}
+
+.cue-normal .action-cue-label {
+  color: #38BDF8;
+}
+
+.cue-warning .action-cue-label {
+  color: #FCD34D;
+}
+
+.cue-critical .action-cue-label {
+  color: #FCA5A5;
+}
+
+.action-cue-divider {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.action-cue-reason {
+  color: #94A3B8;
+  font-size: 0.82rem;
+  font-style: italic;
+}

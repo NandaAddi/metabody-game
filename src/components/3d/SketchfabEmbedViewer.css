@@ -1,0 +1,119 @@
+/* ==========================================================================
+   SketchfabEmbedViewer.css — Fullscreen Edge-to-Edge 3D Viewport (Ultra Clean)
+   ========================================================================== */
+
+.sketchfab-viewer-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, #1E293B 0%, #0F172A 70%, #030712 100%);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.sketchfab-iframe {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  border: 0;
+  outline: none;
+  background: transparent;
+  display: block;
+}
+
+/* Loading Overlay */
+.sketchfab-loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 15, 29, 0.95);
+  backdrop-filter: blur(14px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  z-index: 20;
+  color: #FFFFFF;
+}
+
+.sketchfab-spinner {
+  width: 54px;
+  height: 54px;
+  border: 5px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #38BDF8;
+  border-right-color: #818CF8;
+  border-radius: 50%;
+  animation: sketchfabSpin 0.9s linear infinite;
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.4);
+}
+
+@keyframes sketchfabSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.sketchfab-loading-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.sketchfab-loading-text span {
+  font-family: var(--font-display, 'Fredoka', 'Outfit', sans-serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #F8FAFC;
+  letter-spacing: 0.3px;
+}
+
+.sketchfab-loading-text small {
+  font-size: 0.82rem;
+  color: #94A3B8;
+}
+
+/* Floating Interaction Hints */
+.sketchfab-floating-hint {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 6px 18px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #CBD5E1;
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+}
+
+.sketchfab-empty-state {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #F87171;
+  font-size: 1rem;
+  font-weight: 700;
+  background: #0B0F19;
+  padding: 24px;
+}
+
+@media (max-width: 768px) {
+  .sketchfab-floating-hint {
+    display: none;
+  }
+}

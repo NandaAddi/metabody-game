@@ -1,0 +1,633 @@
+/* ==========================================================================
+   METABODY - GLOSSY CHROME & JELLY GAME UI DESIGN SYSTEM
+   Casual 2D Vector Game Aesthetic (Buttons, Dialog Plaques, & Pop-up Frames)
+   Optimized for IFP 65"+ Multi-touch & Student Tablet Ergonomics
+   ========================================================================== */
+
+/* --- 1. CHROME & METALLIC FRAME TOKENS --- */
+:root {
+  /* Chrome Metallic Gradient Layers */
+  --chrome-rim-outer: #334155;
+  --chrome-gradient: linear-gradient(180deg, #FFFFFF 0%, #E2E8F0 15%, #CBD5E1 40%, #94A3B8 75%, #475569 100%);
+  --chrome-inner-shadow: inset 0 2px 2px rgba(255, 255, 255, 0.95), inset 0 -2px 3px rgba(15, 23, 42, 0.65);
+  --chrome-drop-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.2);
+  --chrome-drop-shadow-pressed: 0 2px 4px rgba(0, 0, 0, 0.25);
+
+  /* Jelly Color Variants (From Reference Art) */
+  /* Gold / Yellow */
+  --jelly-gold-bg: linear-gradient(180deg, #FFF066 0%, #FFD000 35%, #FF9F00 70%, #E65100 100%);
+  --jelly-gold-inner: inset 0 2px 3px rgba(255, 255, 255, 0.8), inset 0 -3px 5px rgba(180, 83, 9, 0.7);
+  --jelly-gold-text: #FFFFFF;
+  --jelly-gold-glow: 0 4px 10px rgba(0, 0, 0, 0.25);
+
+  /* Lilac / Purple -> Deep Royal Indigo (Non-AI palette) */
+  --jelly-purple-bg: linear-gradient(180deg, #818CF8 0%, #6366F1 35%, #4F46E5 70%, #312E81 100%);
+  --jelly-purple-inner: inset 0 2px 3px rgba(255, 255, 255, 0.7), inset 0 -3px 5px rgba(49, 46, 129, 0.7);
+  --jelly-purple-text: #FFFFFF;
+  --jelly-purple-glow: 0 4px 10px rgba(0, 0, 0, 0.25);
+
+  /* Pearl / Pink */
+  --jelly-pink-bg: linear-gradient(180deg, #FFF1F2 0%, #FCE7F3 30%, #F472B6 68%, #BE185D 100%);
+  --jelly-pink-inner: inset 0 2px 3px rgba(255, 255, 255, 0.85), inset 0 -3px 5px rgba(190, 24, 93, 0.55);
+  --jelly-pink-text: #FFFFFF;
+  --jelly-pink-glow: 0 4px 10px rgba(0, 0, 0, 0.25);
+
+  /* Emerald Green (Game Homeostasis / Success) */
+  --jelly-green-bg: linear-gradient(180deg, #BBF7D0 0%, #4ADE80 35%, #16A34A 70%, #14532D 100%);
+  --jelly-green-inner: inset 0 2px 3px rgba(255, 255, 255, 0.8), inset 0 -3px 5px rgba(20, 83, 45, 0.7);
+  --jelly-green-text: #FFFFFF;
+  --jelly-green-glow: 0 4px 10px rgba(0, 0, 0, 0.25);
+
+  /* Cobalt Ocean Blue (Info / Hydration / Action — Non-cyan palette) */
+  --jelly-blue-bg: linear-gradient(180deg, #60A5FA 0%, #3B82F6 35%, #2563EB 70%, #1D4ED8 100%);
+  --jelly-blue-inner: inset 0 2px 3px rgba(255, 255, 255, 0.7), inset 0 -3px 5px rgba(29, 78, 216, 0.7);
+  --jelly-blue-text: #FFFFFF;
+  --jelly-blue-glow: 0 4px 10px rgba(0, 0, 0, 0.25);
+
+  /* Crimson Red (Danger / Crisis / Close / Reset) */
+  --jelly-red-bg: linear-gradient(180deg, #FECDD3 0%, #FB7185 35%, #E11D48 70%, #881337 100%);
+  --jelly-red-inner: inset 0 2px 3px rgba(255, 255, 255, 0.8), inset 0 -3px 5px rgba(136, 19, 55, 0.7);
+  --jelly-red-text: #FFFFFF;
+  --jelly-red-glow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+/* ==========================================================================
+   2. GAME BUTTON BASE STYLES
+   ========================================================================== */
+
+.game-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display, 'Fredoka', 'Quicksand', sans-serif);
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  vertical-align: middle;
+
+  /* Crisp Unified Button Frame */
+  border: 2px solid transparent;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.12s ease-out,
+              filter 0.15s ease-out;
+
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Chrome Notch Accents disabled to keep single unified surface */
+.game-btn::after {
+  display: none;
+}
+
+/* Inner Jelly Container (Inline Flex, NOT a nested card) */
+.game-btn__jelly {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  overflow: hidden;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.02em;
+  z-index: 1;
+  padding: 4px 12px;
+}
+
+/* Glossy Specular Arc (The curved glass dome reflection) */
+.game-btn__gloss {
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  right: 3px;
+  height: 48%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.35) 60%, rgba(255, 255, 255, 0) 100%);
+  border-radius: 999px 999px 40% 40% / 12px 12px 6px 6px;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.95;
+}
+
+/* Secondary Rim Gloss (Subtle bottom glow) */
+.game-btn__rim-shine {
+  position: absolute;
+  bottom: 2px;
+  left: 12%;
+  right: 12%;
+  height: 18%;
+  background: linear-gradient(0deg, rgba(255, 255, 255, 0.35) 0%, transparent 100%);
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Button Content (Label & Icon) */
+.game-btn__content {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  line-height: 1;
+  transform: translateY(-0.5px);
+}
+
+/* --- Interactive States --- */
+.game-btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+  transform: translateY(-1.5px);
+}
+
+.game-btn:active:not(:disabled),
+.game-btn.is-active {
+  transform: translateY(3px) scale(0.985);
+  box-shadow: var(--chrome-drop-shadow-pressed);
+  filter: brightness(0.98);
+}
+
+.game-btn:active:not(:disabled) .game-btn__gloss {
+  opacity: 0.7;
+}
+
+.game-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* ==========================================================================
+   3. BUTTON SHAPE PRESETS (Matching Reference Art)
+   ========================================================================== */
+
+/* A. Rectangle (Wide Action Bar / CTA) */
+.game-btn--rect {
+  border-radius: 16px;
+}
+.game-btn--rect.game-btn--sm {
+  min-width: 110px;
+  min-height: 44px;
+  height: 44px;
+  font-size: 0.95rem;
+}
+.game-btn--rect.game-btn--md {
+  min-width: 160px;
+  height: 54px;
+  font-size: 1.15rem;
+}
+.game-btn--rect.game-btn--lg {
+  min-width: 220px;
+  height: 66px;
+  font-size: 1.35rem;
+  border-radius: 20px;
+}
+
+/* B. Square (Menu, Settings, Action Tiles) */
+.game-btn--square {
+  border-radius: 18px;
+  aspect-ratio: 1 / 1;
+}
+.game-btn--square.game-btn--sm {
+  width: 44px;
+  height: 44px;
+  font-size: 1.1rem;
+  border-radius: 12px;
+}
+.game-btn--square.game-btn--md {
+  width: 58px;
+  height: 58px;
+  font-size: 1.35rem;
+}
+.game-btn--square.game-btn--lg {
+  width: 76px;
+  height: 76px;
+  font-size: 1.8rem;
+  border-radius: 22px;
+}
+
+/* C. Circle (Close, Sound, Pause, Floating Badge) */
+.game-btn--circle {
+  border-radius: 50% !important;
+  aspect-ratio: 1 / 1;
+}
+.game-btn--circle .game-btn__gloss {
+  top: 4px;
+  left: 14%;
+  right: 14%;
+  height: 44%;
+  border-radius: 50% 50% 45% 45%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.2) 75%, transparent 100%);
+}
+.game-btn--circle.game-btn--sm {
+  width: 42px;
+  height: 42px;
+  font-size: 1.1rem;
+}
+.game-btn--circle.game-btn--md {
+  width: 56px;
+  height: 56px;
+  font-size: 1.4rem;
+}
+.game-btn--circle.game-btn--lg {
+  width: 74px;
+  height: 74px;
+  font-size: 1.85rem;
+}
+
+/* ==========================================================================
+   4. JELLY COLOR THEME VARIANTS
+   ========================================================================== */
+
+/* Gold / Yellow (Default & Reference Row 1) */
+.game-btn--gold {
+  background: var(--jelly-gold-bg);
+  border-color: #D97706;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+  color: var(--jelly-gold-text);
+}
+.game-btn--gold:hover:not(:disabled) {
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35), var(--jelly-gold-glow);
+}
+
+/* Lilac / Purple -> Deep Royal Indigo (Reference Row 2) */
+.game-btn--purple {
+  background: var(--jelly-purple-bg);
+  border-color: #4338CA;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+  color: var(--jelly-purple-text);
+}
+.game-btn--purple:hover:not(:disabled) {
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35), var(--jelly-purple-glow);
+}
+
+/* Pearl / Pink (Reference Row 3) */
+.game-btn--pink {
+  background: var(--jelly-pink-bg);
+  border-color: #BE185D;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+  color: var(--jelly-pink-text);
+}
+.game-btn--pink:hover:not(:disabled) {
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35), var(--jelly-pink-glow);
+}
+
+/* Emerald Green (Homeostasis / Next / Success) */
+.game-btn--green {
+  background: var(--jelly-green-bg);
+  border-color: #15803D;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+  color: var(--jelly-green-text);
+}
+.game-btn--green:hover:not(:disabled) {
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35), var(--jelly-green-glow);
+}
+
+/* Cobalt Blue (Info / Hydration / Nav) */
+.game-btn--blue {
+  background: var(--jelly-blue-bg);
+  border-color: #1D4ED8;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+  color: var(--jelly-blue-text);
+}
+.game-btn--blue:hover:not(:disabled) {
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35), var(--jelly-blue-glow);
+}
+
+/* Crimson Red (Danger / Crisis / Close) */
+.game-btn--red {
+  background: var(--jelly-red-bg);
+  border-color: #BE123C;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+  color: var(--jelly-red-text);
+}
+.game-btn--red:hover:not(:disabled) {
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35), var(--jelly-red-glow);
+}
+
+/* Slate Steel (Neutral / Navigation / Secondary — nav, pause, lab button) */
+.game-btn--slate {
+  background: linear-gradient(180deg, #475569 0%, #334155 45%, #1E293B 100%);
+  border-color: #64748B;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+}
+.game-btn--slate:hover:not(:disabled) {
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+/* Reset inner jelly styling so it never acts as a card inside card */
+.game-btn .game-btn__jelly {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  color: inherit !important;
+}
+
+/* ==========================================================================
+   5. GLOSSY PLAQUE / RIBBON BAR (Titles & Nameplates)
+   ========================================================================== */
+
+.game-plaque {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--chrome-gradient);
+  padding: 5px;
+  border-radius: 18px;
+  border: 1px solid var(--chrome-rim-outer);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  font-family: var(--font-display, 'Fredoka', 'Quicksand', sans-serif);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  user-select: none;
+  overflow: hidden;
+}
+
+.game-plaque::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: var(--chrome-inner-shadow);
+  pointer-events: none;
+  z-index: 4;
+}
+
+.game-plaque__inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 8px 24px;
+  border-radius: 13px;
+  overflow: hidden;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  z-index: 1;
+}
+
+.game-plaque__gloss {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  right: 4px;
+  height: 46%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.2) 60%, transparent 100%);
+  border-radius: 999px 999px 40% 40% / 10px 10px 4px 4px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.game-plaque--gold .game-plaque__inner {
+  background: var(--jelly-gold-bg);
+  box-shadow: var(--jelly-gold-inner);
+  color: #FFFFFF;
+}
+
+.game-plaque--purple .game-plaque__inner {
+  background: var(--jelly-purple-bg);
+  box-shadow: var(--jelly-purple-inner);
+  color: #FFFFFF;
+}
+
+.game-plaque--pink .game-plaque__inner {
+  background: var(--jelly-pink-bg);
+  box-shadow: var(--jelly-pink-inner);
+  color: #FFFFFF;
+}
+
+.game-plaque--green .game-plaque__inner {
+  background: var(--jelly-green-bg);
+  box-shadow: var(--jelly-green-inner);
+  color: #FFFFFF;
+}
+
+.game-plaque--blue .game-plaque__inner {
+  background: var(--jelly-blue-bg);
+  box-shadow: var(--jelly-blue-inner);
+  color: #FFFFFF;
+}
+
+.game-plaque--red .game-plaque__inner {
+  background: var(--jelly-red-bg);
+  box-shadow: var(--jelly-red-inner);
+  color: #FFFFFF;
+}
+
+/* ==========================================================================
+   6. GAME MODAL & POP-UP FRAME (AAA 2D Casual Game Style)
+   ========================================================================== */
+
+.game-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 15, 29, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 20px;
+  animation: gameModalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes gameModalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Outer Frame of the Modal (Frameless Glass/Metallic Ambient Glow) */
+.game-modal-frame {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  max-height: calc(100% - 44px);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  margin-top: 18px;
+  background: var(--chrome-gradient);
+  border: none;
+  outline: none;
+  border-radius: 32px;
+  padding: 10px;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.85);
+  animation: gameModalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes gameModalPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.88) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Metallic Inner Bevel for Modal Frame */
+.game-modal-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: var(--chrome-inner-shadow);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Floating Header Plaque on Top of the Frame */
+.game-modal-header-ribbon {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 12;
+  white-space: nowrap;
+}
+
+/* Close Button (Circle Chrome Button in Top Right) */
+.game-modal-close-btn {
+  position: absolute;
+  top: -16px;
+  right: -12px;
+  z-index: 15;
+}
+
+/* Inner Container for Content (Frameless with Smooth Auto-Scroll) */
+.game-modal-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+  border: none;
+  outline: none;
+  border-radius: 22px;
+  padding: 32px 22px 18px 22px;
+  color: #F8FAFC;
+  box-shadow: inset 0 3px 12px rgba(0, 0, 0, 0.5);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Custom Sleek Scrollbar for Game Modal Body */
+.game-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+.game-modal-body::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: 999px;
+  margin: 12px 0;
+}
+.game-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+}
+.game-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.65);
+}
+
+/* Subtle Game Background Grid / Radial Glow */
+.game-modal-body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60%;
+  background: radial-gradient(ellipse at top, rgba(91, 200, 245, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Modal Action Footer */
+.game-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* Large Size Variant for Complex Modals */
+.game-modal-frame--lg {
+  max-width: 680px;
+}
+
+.game-modal-frame--xl {
+  max-width: 900px;
+}
+
+/* ==========================================================================
+   7. GAME CHIP (small pill toggle: kamus tabs, filters)
+   Kit-adjacent pattern — token colors only, 44px IFP touch floor.
+   ========================================================================== */
+
+.game-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  background: rgba(15, 23, 42, 0.6);
+  color: var(--text-on-dark-dim);
+  font-family: var(--font-display, 'Fredoka', 'Quicksand', sans-serif);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: all var(--motion-fast, 0.12s) ease-out;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.game-chip--active {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.95) 0%, rgba(3, 105, 161, 0.95) 100%);
+  border-color: transparent;
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* Light-surface variant for dashboards/tablets (StudentView tabs) */
+.game-chip--light {
+  background: #F1F5F9;
+  border-color: #CBD5E1;
+  color: #334155;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.game-chip--light.game-chip--active {
+  background: var(--color-primary-dark);
+  border-color: transparent;
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+}

@@ -1,0 +1,292 @@
+/* ==========================================================================
+   CharacterDialogBox.css — Visual Novel / RPG Character Dialogue Box for IFP
+   ========================================================================== */
+
+.character-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding-bottom: 24px;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  animation: dialogFadeIn 0.3s ease-out;
+}
+
+.character-dialog-backdrop.crisis-mode {
+  background: rgba(15, 23, 42, 0.65);
+  animation: crisisAlarmFade 1.5s infinite alternate;
+}
+
+@keyframes dialogFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes crisisAlarmFade {
+  0% {
+    background: rgba(15, 23, 42, 0.65);
+  }
+  100% {
+    background: rgba(220, 38, 38, 0.25);
+  }
+}
+
+/* Dialog Card Container (Frameless Glassmorphism & Ambient Glow) */
+.character-dialog-card {
+  width: 92%;
+  max-width: 940px;
+  background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  outline: none;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.85), inset 0 2px 3px rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(20px);
+  border-radius: 28px;
+  padding: 16px 24px 18px 18px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  animation: dialogCardSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dialogCardSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Story vs Crisis Frameless Theme */
+.character-dialog-card.story-card {
+  border: 1px solid rgba(192, 132, 252, 0.35);
+  outline: none;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.85), inset 0 2px 3px rgba(255, 255, 255, 0.2);
+}
+
+.character-dialog-card.crisis-card {
+  border: 2px solid rgba(239, 68, 68, 0.75);
+  outline: none;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.85), inset 0 2px 3px rgba(255, 255, 255, 0.2);
+  animation: crisisCardPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes crisisCardPulse {
+  0%, 100% {
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8);
+    transform: scale(1.01);
+  }
+}
+
+/* Character Portrait with Ambient Circular Glow (Frameless) */
+.dialog-portrait-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: -36px; /* Visual Novel overlapping portrait */
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, rgba(15, 23, 42, 0.6) 100%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  outline: none;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+.dialog-portrait-glow {
+  display: none;
+}
+
+.crisis-card .dialog-portrait-glow {
+  display: none;
+}
+
+.dialog-portrait-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.45));
+  animation: portraitBreathe 2.5s infinite ease-in-out;
+}
+
+@keyframes portraitBreathe {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.03);
+  }
+}
+
+/* Main Content Area */
+.dialog-main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Header Row: Nameplate & Skip */
+.dialog-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dialog-nameplate {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  outline: none;
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+}
+
+.dialog-speaker-icon {
+  font-size: 1.05rem;
+}
+
+.dialog-speaker-name {
+  color: #FFFFFF;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  letter-spacing: 0.5px;
+}
+
+.dialog-speaker-role {
+  color: #94A3B8;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.crisis-card .dialog-nameplate {
+  background: rgba(239, 68, 68, 0.25);
+  border: none;
+  outline: none;
+}
+
+.crisis-card .dialog-speaker-name {
+  color: #FCA5A5;
+}
+
+.crisis-card .dialog-speaker-role {
+  color: #F87171;
+  font-weight: 700;
+}
+
+.dialog-skip-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  outline: none;
+  color: #94A3B8;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dialog-skip-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #FFFFFF;
+}
+
+/* Text Container */
+.dialog-text-container {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+}
+
+.dialog-speech-text {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.55;
+  color: #F8FAFC;
+  font-weight: 500;
+}
+
+.crisis-card .dialog-speech-text {
+  color: #FEF2F2;
+  font-weight: 600;
+}
+
+.typewriter-cursor {
+  display: inline-block;
+  color: var(--color-primary);
+  font-weight: 700;
+  animation: cursorBlink 0.6s infinite;
+  margin-left: 2px;
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Footer Row */
+.dialog-footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 4px;
+}
+
+.dialog-progress-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.dialog-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  transition: all 0.3s;
+}
+
+.dialog-dot.active {
+  background: var(--color-primary);
+  width: 24px;
+  border-radius: 5px;
+}
+
+.dialog-dot.done {
+  background: var(--color-accent-green);
+}
+
+.dialog-action-btn {
+  padding: 8px 22px;
+  font-size: 1rem;
+  font-weight: 800;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.dialog-action-btn:hover {
+  transform: scale(1.04);
+}

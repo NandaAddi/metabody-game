@@ -1,0 +1,148 @@
+/* ==========================================================================
+   METABODY DESIGN SYSTEM & THEME TOKENS
+   Aesthetic: Cartoonish Casual Kids Game for IFP 65"+ & Student Tablets
+   ========================================================================== */
+
+:root {
+  /* Brand Core Colors */
+  --color-primary: #5BC8F5;          /* Sky Blue Ceria */
+  --color-primary-dark: #0369A1;      /* Ocean Blue 700 - WCAG AA compliant on white (6:1) */
+  --color-primary-light: #E0F4FD;
+  
+  --color-secondary: #FF7A00;        /* Cheerful Orange Si Meta */
+  --color-secondary-dark: #D96200;
+  --color-secondary-light: #FFE8D6;
+
+  --color-accent-green: #2ED573;     /* Healthy Green Homeostasis */
+  --color-accent-green-dark: #20BF6B;
+  --color-accent-green-light: #E8FBF0;
+
+  --color-accent-red: #FF4757;       /* Warning / Heart Beat / Crisis */
+  --color-accent-red-dark: #ED254E;
+  --color-accent-red-light: #FFEBF0;
+
+  --color-accent-yellow: #FFA502;    /* Urine / Glucose / Warning */
+  --color-accent-yellow-light: #FFF8E7;
+
+  --color-accent-purple: #4F46E5;    /* Toxins / Urea / Kidney Lab */
+  --color-accent-cyan: #2563EB;      /* Oxygen / Fresh Breath */
+
+  /* Neutral Background & Surface Colors */
+  --bg-app: #0F172A;                 /* Deep Navy Space for IFP backdrop */
+  --bg-panel: #1E293B;               /* Slate panel surface on dark */
+  --bg-card: rgba(255, 255, 255, 0.92);
+  --bg-card-dark: rgba(15, 23, 42, 0.85);
+  --bg-glass: rgba(255, 255, 255, 0.75);
+  --bg-glass-heavy: rgba(255, 255, 255, 0.88);
+  --bg-glass-dark: rgba(15, 23, 42, 0.75);
+
+  /* Borders & Dividers */
+  --border-subtle: rgba(255, 255, 255, 0.25);
+  --border-glass: rgba(255, 255, 255, 0.4);
+  --border-bubble: #FFFFFF;
+  --border-dark: #1E293B;
+
+  /* Typography Colors */
+  --text-main: #1E293B;              /* Slate 800 - Crisp readability */
+  --text-muted: #64748B;             /* Slate 500 */
+  --text-light: #FFFFFF;
+  --text-gold: #F59E0B;
+
+  /* Typography Font Stacks */
+  --font-display: 'Fredoka', 'Quicksand', 'Nunito', system-ui, -apple-system, sans-serif;
+  --font-body: 'Quicksand', 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Shadows for 3D Cartoon Pop */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
+  --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.25);
+  --shadow-bubble: 0 6px 0px rgba(0, 0, 0, 0.18), 0 10px 20px rgba(0, 0, 0, 0.15);
+  --shadow-bubble-pressed: 0 2px 0px rgba(0, 0, 0, 0.18), 0 4px 10px rgba(0, 0, 0, 0.12);
+  --shadow-glow-blue: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-glow-orange: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-glow-green: 0 4px 12px rgba(0, 0, 0, 0.25);
+
+  /* Border Radii (Friendly rounded edges) */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-full: 9999px;
+
+  /* Touch Dimensions for IFP */
+  --btn-min-size: 64px;
+  --station-btn-height: 72px;
+
+  /* Status text-on-dark scale (single source of truth — see audit).
+     Base tokens above are for fills/gradients; these light variants are
+     the ONLY text/border/glow colors allowed on dark surfaces.
+     Frozen role mapping (do not invent new meanings):
+     gold = primary CTA · blue/info = standard action & info ·
+     green/health = go & healthy · red/danger = risk & crisis ·
+     purple/nephron = science & lab · pink = guide & dialog ·
+     slate (.game-btn--slate) = neutral navigation & secondary */
+  --color-health-text: #4ADE80;
+  --color-danger-text: #F87171;
+  --color-warn-text: #FBBF24;
+  --color-info-text: #60A5FA;
+  --color-nephron-text: #818CF8;
+
+  /* Secondary dark text (minimum legible on dark backgrounds) */
+  --text-on-dark: #F8FAFC;
+  --text-on-dark-dim: #CBD5E1;
+
+  /* Transitions */
+  --transition-bounce: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-smooth: all 0.2s ease-in-out;
+
+  /* Motion language (single source of truth) */
+  --motion-fast: 0.12s;    /* press / hover feedback */
+  --motion-med: 0.25s;     /* modal pop / toasts */
+  --motion-slow: 0.4s;     /* progress bars */
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Base Animation Keyframes */
+@keyframes pulseGlow {
+  0%, 100% {
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.6));
+    transform: scale(1.02);
+  }
+}
+
+@keyframes floatGentle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes heartBeat {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.15); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.1); }
+  70% { transform: scale(1); }
+}
+
+@keyframes sweatDrop {
+  0% { transform: translateY(-10px); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(15px); opacity: 0; }
+}
+
+/* Generic fade-in for toasts, banners, modal content */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Generic attention pulse for badges and status dots */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.92); }
+}

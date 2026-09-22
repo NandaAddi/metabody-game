@@ -1,0 +1,168 @@
+.arena-viewport {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justifyContent: space-between;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: background-image 0.5s ease-in-out;
+  box-sizing: border-box;
+}
+
+.arena-overlay-dim {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.1) 0%, rgba(15, 23, 42, 0.68) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 2. Panggung Utama Konsol IFP: Terpusat Lega ke Si Meta */
+.arena-center-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 24px 8px;
+  position: relative;
+  z-index: 10;
+  box-sizing: border-box;
+}
+
+/* Panel Sisi Mengambang Ramping di Kiri */
+.arena-floating-left {
+  position: absolute;
+  left: 24px;
+  top: 14px;
+  z-index: 25;
+  max-width: 320px;
+}
+
+/* Panel Sisi (Dock Cards Berdesain Kaca Gelap Elegan - Frameless Glassmorphism) */
+.arena-dock-card {
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  outline: none;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), inset 0 1px 2px rgba(255, 255, 255, 0.15);
+  padding: 16px;
+  color: #F8FAFC;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.arena-dock-card--compact {
+  max-width: 290px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  outline: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+}
+
+.arena-targets-toggle-btn {
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(56, 189, 248, 0.35);
+  outline: none;
+  color: #38BDF8;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-family: var(--font-display, 'Fredoka', sans-serif);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.arena-targets-toggle-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(14, 165, 233, 0.25);
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+}
+
+.arena-targets-minimize-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #CBD5E1;
+  font-size: 0.74rem;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.arena-targets-minimize-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: #FFFFFF;
+}
+
+.arena-target-item {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: #F1F5F9;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.arena-dock-card::-webkit-scrollbar {
+  width: 5px;
+}
+
+.arena-dock-card::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 99px;
+}
+
+/* Baris Metrik Telemetri Faal Tubuh */
+.telemetry-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  margin-bottom: 8px;
+  font-size: 0.88rem;
+  color: #F1F5F9;
+  transition: background 0.2s ease;
+}
+
+.telemetry-row:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.telemetry-row strong {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  min-width: 60px;
+  text-align: right;
+  display: inline-block;
+  font-size: 0.95rem;
+}

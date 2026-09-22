@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visualisasi 3D Peredaran Darah — Aliran Jelas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { height:100%; overflow:hidden; }
+  body {
+    overflow:hidden; font-family:'Manrope',sans-serif; color:#12293d;
+    background:linear-gradient(168deg,#ffffff 0%,#f4f9fd 42%,#e2eefa 100%);
+  }
+  #scene { position:fixed; inset:0; }
+  #scene canvas { display:block; cursor:grab; }
+  #scene canvas:active { cursor:grabbing; }
+  .overlay { position:fixed; z-index:10; }
+  /* ---- header (ala reabsorption #hdr) ---- */
+  #title { top:26px; left:30px; max-width:430px; user-select:none; pointer-events:none; }
+  #title .eyebrow { display:flex; align-items:center; gap:8px; font-size:10.5px; font-weight:800; letter-spacing:.16em; color:#6d8aa2; text-transform:uppercase; }
+  #title .eyebrow i { width:7px; height:7px; border-radius:50%; background:#e0483f; box-shadow:0 0 0 3px rgba(224,72,63,.14); }
+  #title h1 {
+    font-family:'Fraunces',serif; font-weight:600; font-size:clamp(30px,3.4vw,42px);
+    line-height:1.05; margin-top:10px; letter-spacing:-0.01em; color:#12293d;
+  }
+  #title h1 em { font-style:italic; position:relative; white-space:nowrap; }
+  #title h1 em svg { position:absolute; left:0; bottom:-8px; width:100%; height:8px; }
+  #title p.sub { margin-top:11px; font-size:13.5px; line-height:1.55; color:#4c6a83; max-width:350px; font-weight:500; }
+  #title .hintline { margin-top:10px; font-size:11.5px; color:#8aa2b5; display:flex; flex-wrap:wrap; }
+  #title .hintline span:not(:last-child)::after { content:'·'; margin:0 12px; color:#c3d4e0; }
+  /* ---- caption: pil navigasi bawah-tengah (ala reabsorption #stages) ---- */
+  #caption {
+    bottom:26px; left:50%; transform:translateX(-50%);
+    display:flex; align-items:center; gap:10px;
+    font-size:13px; font-weight:700; letter-spacing:.2px; text-align:center; color:#14344e;
+    background:rgba(255,255,255,.78); padding:10px 20px; border-radius:999px;
+    border:1px solid rgba(18,41,61,.09); backdrop-filter:blur(14px) saturate(1.3);
+    box-shadow:0 14px 34px rgba(30,70,110,.12);
+    transition:opacity .5s ease, transform .5s ease; white-space:nowrap; max-width:calc(100vw - 20px);
+  }
+  #caption em { font-style:normal; color:#e0483f; }
+  #caption.fade { opacity:0; transform:translateX(-50%) translateY(10px); }
+  #capDots { display:flex; gap:6px; align-items:center; }
+  #capDots .cdot { width:7px; height:7px; border-radius:50%; background:rgba(18,60,95,.15); }
+  #capDots .cdot.on { background:#e0483f; box-shadow:0 0 0 3px rgba(224,72,63,.14); }
+  /* ---- legend: kartu kaca kiri-bawah (ala reabsorption #legend) ---- */
+  #legend {
+    left:30px; bottom:30px; display:flex; flex-direction:column; gap:2px;
+    background:rgba(255,255,255,.72); backdrop-filter:blur(14px) saturate(1.3);
+    border:1px solid rgba(18,41,61,.09); border-radius:16px; padding:14px 16px 12px;
+    box-shadow:0 14px 34px rgba(30,70,110,.10);
+    user-select:none; width:300px;
+  }
+  #legend h4 { font-size:10px; letter-spacing:.15em; color:#7b93a7; font-weight:800; margin-bottom:6px; }
+  .leg {
+    display:flex; align-items:center; gap:9px; padding:4.5px 6px; margin:0 -6px; border-radius:9px;
+    font-size:12px; font-weight:600; color:#2a4a64;
+  }
+  .leg span { color:#7b93a7; font-size:11px; font-weight:500; }
+  .dot { width:13px; height:13px; border-radius:50%; flex:none; box-shadow:inset 0 -2px 3px rgba(0,0,0,.14); }
+  /* ---- panel: kartu kaca kanan-atas ---- */
+  #panel {
+    top:26px; right:28px; display:flex; flex-direction:column; gap:10px;
+    background:rgba(255,255,255,.78); backdrop-filter:blur(14px) saturate(1.3);
+    border:1px solid rgba(18,41,61,.09); border-radius:16px; padding:14px 16px;
+    box-shadow:0 14px 34px rgba(30,70,110,.10);
+    font-size:12.5px; font-weight:600; color:#2a4a64; min-width:238px;
+    pointer-events:auto;
+  }
+  #panel label { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  #panel label.row { flex-direction:column; align-items:stretch; gap:6px; }
+  #panel label.row span { display:flex; justify-content:space-between; align-items:baseline; }
+  #panel label.row b { color:#e0483f; font-weight:800; }
+  #panel input[type=range] { width:110px; accent-color:#e0483f; cursor:pointer; }
+  #panel label.row input[type=range] { width:100%; }
+  #panel input[type=checkbox] { accent-color:#e0483f; }
+  #panel .sec { font-size:10px; letter-spacing:.15em; color:#7b93a7; font-weight:800; margin-top:2px; }
+  #panel .div { height:1px; background:rgba(18,41,61,.09); margin:2px 0; }
+  #panel .chk { display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; }
+  #bpmText { color:#e0483f; letter-spacing:.08em; font-weight:800; font-size:11px; }
+  @media(max-width:980px){
+    #title { top:16px; left:16px; right:76px; }
+    #title h1 { font-size:27px; }
+    #title p.sub, #title .hintline { display:none; }
+    #panel { top:16px; right:16px; min-width:0; max-width:52vw; max-height:44vh; overflow-y:auto; padding:10px 12px; font-size:11.5px; }
+    #legend { left:14px; right:14px; bottom:84px; width:auto; padding:9px 12px; flex-direction:row; gap:2px; overflow-x:auto; align-items:center; }
+    #legend h4 { display:none; }
+    .leg { flex:none; font-size:11px; padding:5px 8px; }
+    .leg span { display:none; }
+    #caption { bottom:14px; font-size:11.5px; padding:8px 14px; white-space:normal; text-align:center; max-width:calc(100vw - 28px); }
+  }
+</style>
+</head>
+<body>
+<div id="scene"></div>
+
+<div class="overlay" id="title">
+  <div class="eyebrow"><i></i>3D Interaktif · IPA Biologi SMP</div>
+  <h1>Sistem <em>Peredaran Darah<svg viewBox="0 0 100 8" preserveAspectRatio="none"><path d="M2 5.5 Q 18 1.5 36 4.5 T 70 4 T 98 3.5" fill="none" stroke="#e0483f" stroke-width="2.6" stroke-linecap="round"/></svg></em></h1>
+  <p class="sub">Visualisasi 3D aliran darah manusia — ikuti darah kaya oksigen dan karbon dioksida ke seluruh tubuh.</p>
+  <p class="hintline"><span>Seret untuk memutar</span><span>Gulir untuk zoom</span><span>Klik-kanan untuk geser</span></p>
+</div>
+
+<div class="overlay" id="panel">
+  <span id="bpmText">❤ JANTUNG · 72 BPM</span>
+  <div class="sec">SIMULASI</div>
+  <label class="row"><span>Kecepatan Darah <b id="speedVal">1.0×</b></span>
+    <input type="range" id="speedSlider" min="0.3" max="3" step="0.1" value="1">
+  </label>
+  <label class="row"><span>Jumlah Sel Darah <b id="densityVal">2.0×</b></span>
+    <input type="range" id="densitySlider" min="1" max="3" step="0.5" value="2">
+  </label>
+  <div class="div"></div>
+  <div class="sec">TAMPILAN</div>
+  <label class="chk"><input type="checkbox" id="trailsChk" checked> Ekor sel darah</label>
+  <label class="chk"><input type="checkbox" id="flowLineChk" checked> Panah arah aliran</label>
+  <label class="chk"><input type="checkbox" id="moteChk" checked> Partikel oksigen di sekitar</label>
+</div>
+
+<div class="overlay fade" id="caption"><span id="capText"></span><span id="capDots"></span></div>
+
+<div class="overlay" id="legend">
+  <h4>ALIRAN DARAH</h4>
+  <div class="leg"><span class="dot" style="background:#ff4b3a;color:#ff4b3a"></span> Merah <span>= kaya oksigen</span></div>
+  <div class="leg"><span class="dot" style="background:#3a8bff;color:#3a8bff"></span> Biru <span>= kaya CO₂</span></div>
+  <div class="leg"><span style="color:#e0483f;font-weight:800">❯❯</span> Tanda panah <span>= arah aliran</span></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+/* CDN fallback: beri pesan jelas bila Three.js gagal dimuat (offline/diblokir) */
+if(!window.THREE){
+  const cap = document.getElementById('caption');
+  cap.classList.remove('fade');
+  document.getElementById('capText').textContent = 'Gagal memuat Three.js — periksa internet ke cdn.jsdelivr.net lalu refresh.';
+  throw new Error('THREE failed to load');
+}
+/* ================================================================
+   UTIL TEKSTUR
+   ================================================================ */
+function makeCanvas(w,h){ const c=document.createElement('canvas'); c.width=w; c.height=h; return c; }
+function toTex(c){ const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; return t; }
+
+// glow bulat untuk partikel
+function glowTexture(){
+  const c = makeCanvas(64,64), x = c.getContext('2d');
+  const gr = x.createRadialGradient(32,32,0,32,32,32);
+  gr.addColorStop(0,'rgba(255,255,255,1)');
+  gr.addColorStop(0.3,'rgba(255,255,255,0.85)');
+  gr.addColorStop(1,'rgba(255,255,255,0)');
+  x.fillStyle=gr; x.fillRect(0,0,64,64);
+  return new THREE.CanvasTexture(c);
+}
+// bentuk sel darah merah (donat pipih) untuk sprite
+function rbcTexture(color){
+  const c = makeCanvas(64,64), x = c.getContext('2d');
+  const gr = x.createRadialGradient(32,32,0,32,32,30);
+  gr.addColorStop(0,'rgba(255,255,255,0.15)');
+  gr.addColorStop(0.45,color.replace('ALPHA','0.95'));
+  gr.addColorStop(0.75,color.replace('ALPHA','0.9'));
+  gr.addColorStop(1,color.replace('ALPHA','0'));
+  x.fillStyle=gr;
+  x.beginPath(); x.arc(32,32,30,0,7); x.fill();
+  // lekukan tengah (biconcave)
+  const hole = x.createRadialGradient(32,32,0,32,32,9);
+  hole.addColorStop(0,color.replace('ALPHA','0.0'));
+  hole.addColorStop(1,color.replace('ALPHA','0.55'));
+  x.fillStyle=hole;
+  x.beginPath(); x.arc(32,32,9,0,7); x.fill();
+  return new THREE.CanvasTexture(c);
+}
+// tekstur panah arah aliran: chevron ">" murni menunjuk +x (= arah u naik = arah sel).
+// 2 baris vertikal (repeat.y=2) agar dari sudut mana pun minimal satu baris terlihat.
+function flowLineTexture(){
+  const c = makeCanvas(256,128), x = c.getContext('2d');
+  x.clearRect(0,0,256,128);
+  x.lineCap='round'; x.lineJoin='round';
+  function chevron(cx, cy, s){
+    // lapis glow lebar
+    x.strokeStyle='rgba(255,255,255,0.35)'; x.lineWidth=20;
+    x.beginPath(); x.moveTo(cx-s,cy-s*0.72); x.lineTo(cx+s*0.7,cy); x.lineTo(cx-s,cy+s*0.72); x.stroke();
+    // inti tegas
+    x.strokeStyle='rgba(255,255,255,0.95)'; x.lineWidth=10;
+    x.beginPath(); x.moveTo(cx-s,cy-s*0.72); x.lineTo(cx+s*0.7,cy); x.lineTo(cx-s,cy+s*0.72); x.stroke();
+  }
+  for(const cy of [32, 96]){ chevron(64, cy, 30); chevron(192, cy, 30); }
+  const t = toTex(c);
+  t.repeat.set(4,2);
+  t.anisotropy = 8;
+  return t;
+}
+
+/* ================================================================
+   SCENE
+   ================================================================ */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xdbe7f4);
+scene.fog = new THREE.Fog(0xdbe7f4, 16, 36);
+
+const camera = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, 0.1, 100);
+camera.position.set(0, 0.4, 13);
+
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+document.getElementById('scene').appendChild(renderer.domElement);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.target.set(0, -0.3, 0);
+controls.enableDamping = true; controls.dampingFactor = 0.06;
+controls.autoRotate = true; controls.autoRotateSpeed = 0.7;
+controls.minDistance = 6; controls.maxDistance = 24;
+renderer.domElement.addEventListener('pointerdown', ()=> controls.autoRotate=false, { once:true });
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0xdcedfb, 0.95));
+const key = new THREE.DirectionalLight(0xfff2e6, 1.1); key.position.set(5, 8, 7); scene.add(key);
+const rimRight = new THREE.DirectionalLight(0xffffff, 0.35); rimRight.position.set(8, 6, -5); scene.add(rimRight);
+const rim = new THREE.DirectionalLight(0xdff0ff, 0.45); rim.position.set(-6, -3, -5); scene.add(rim);
+const heartLight = new THREE.PointLight(0xff5555, 0.55, 6); scene.add(heartLight);
+// Fill lights untuk lekukan organ (soft occlusion relief)
+const fillLung = new THREE.PointLight(0xffffff, 0.25, 12); fillLung.position.set(0, 1.2, 0.5); scene.add(fillLung);
+const fillLiver = new THREE.PointLight(0xffffff, 0.2, 10); fillLiver.position.set(0, -3.5, 0); scene.add(fillLiver);
+const fillKidney = new THREE.PointLight(0xffffff, 0.18, 8); fillKidney.position.set(0, -5.35, 0.5); scene.add(fillKidney);
+// --- Partikel oksigen sekitar: dust motes melayang di sekitar paru & aorta ---
+const oxyMoteTex = glowTexture(); // reuse existing soft glow
+const MOTE_COUNT = 70;
+const moteGeo = new THREE.PlaneGeometry(0.12, 0.12);
+const moteMat = new THREE.MeshBasicMaterial({
+  map: oxyMoteTex, transparent:true, opacity:0.35,
+  blending:THREE.NormalBlending, depthWrite:false, color:0xff9db0
+});
+const oxyMotes = [];
+for(let i=0;i<MOTE_COUNT;i++){
+  const x= Math.random()*3-1.5, y=0.8+Math.random()*1.4, z=0.6+Math.random()*0.5; // belakang paru (z>0.5)
+  const m = new THREE.Mesh(moteGeo, moteMat);
+  m.position.set(x, y, z);
+  const phase=Math.random()*Math.PI*2, driftSpeed=0.0008+Math.random()*0.0012;
+  m.userData={phase, driftSpeed, vy:0.002+Math.random()*0.003};
+  oxyMotes.push(m);
+}
+oxyMotes.forEach(m=>scene.add(m));
+
+/* ================================================================
+   TEKSTUR ORGAN (prosedural, ringkas)
+   ================================================================ */
+function organMat(tex, opts={}){
+  const m = new THREE.MeshStandardMaterial({
+    map: tex || null,
+    roughness: opts.rough ?? 0.55, metalness: 0.05,
+    transparent: !!opts.opacity, opacity: opts.opacity || 1,
+    emissive: new THREE.Color(opts.emissive ?? 0x000000),
+    emissiveIntensity: opts.emissiveIntensity ?? 0.25
+  });
+  if(opts.bump){ m.bumpMap = opts.bump; m.bumpScale = opts.bumpScale ?? 0.03; }
+  if(opts.vertexColors){ m.vertexColors = true; }
+  if(opts.color){ m.color = new THREE.Color(opts.color); }
+  return m;
+}
+function noiseTex(base1, base2, spotA, spotB, count){
+  const c = makeCanvas(512,512), x = c.getContext('2d');
+  const g = x.createLinearGradient(0,0,0,512);
+  g.addColorStop(0,base1); g.addColorStop(1,base2);
+  x.fillStyle=g; x.fillRect(0,0,512,512);
+  for(let i=0;i<count;i++){
+    x.beginPath();
+    x.arc(Math.random()*512, Math.random()*512, 1+Math.random()*4, 0, 7);
+    x.fillStyle = Math.random()<0.5 ? spotA : spotB;
+    x.fill();
+  }
+  return toTex(c);
+}
+// Korteks serebri: pola gyri/sulci berbelit + pasangan bump map.
+// Mengembalikan { map, bump } agar relief terbaca lewat pencahayaan.
+const brainTex = (()=>{
+  const W=1024, H=512;
+  const c = makeCanvas(W,H), x = c.getContext('2d');
+  const b = makeCanvas(W,H), bx = b.getContext('2d');
+  const g = x.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#f2b6ab'); g.addColorStop(0.55,'#e29a90'); g.addColorStop(1,'#cf8284');
+  x.fillStyle=g; x.fillRect(0,0,W,H);
+  bx.fillStyle='#808080'; bx.fillRect(0,0,W,H);
+  // bercak besar lembut agar tidak flat
+  for(let i=0;i<46;i++){
+    const px=Math.random()*W, py=Math.random()*H, r=40+Math.random()*110;
+    const light = Math.random()<0.5;
+    const rg = x.createRadialGradient(px,py,0,px,py,r);
+    rg.addColorStop(0, light?'rgba(255,205,195,0.16)':'rgba(120,40,50,0.14)');
+    rg.addColorStop(1,'rgba(255,255,255,0)');
+    x.fillStyle=rg; x.beginPath(); x.arc(px,py,r,0,7); x.fill();
+  }
+  // alur gyri: random-walk berbelit, digambar di color + bump sekaligus
+  function worm(sulcusW, ridgeW){
+    let px=Math.random()*W, py=Math.random()*H, a=Math.random()*Math.PI*2;
+    const steps=22+Math.random()*26|0, seg=8+Math.random()*7;
+    const pts=[[px,py]];
+    for(let s=0;s<steps;s++){ a += (Math.random()-0.5)*1.3 + Math.sin(s*0.7+px*0.01)*0.25; px+=Math.cos(a)*seg; py+=Math.sin(a)*seg*0.7; pts.push([px,py]); }
+    const path=(ctx)=>{ ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]); for(let k=1;k<pts.length-1;k++){ const mx=(pts[k][0]+pts[k+1][0])/2, my=(pts[k][1]+pts[k+1][1])/2; ctx.quadraticCurveTo(pts[k][0],pts[k][1],mx,my); } ctx.stroke(); };
+    x.lineCap='round'; x.lineJoin='round'; bx.lineCap='round'; bx.lineJoin='round';
+    x.strokeStyle='rgba(140,60,64,0.38)'; x.lineWidth=sulcusW; path(x);       // celah sulci
+    bx.strokeStyle='rgba(0,0,0,0.5)'; bx.lineWidth=sulcusW; path(bx);
+    x.strokeStyle='rgba(255,226,216,0.30)'; x.lineWidth=ridgeW;               // puncak gyri
+    x.save(); x.translate(2,-2); path(x); x.restore();
+    bx.strokeStyle='rgba(255,255,255,0.55)'; bx.lineWidth=ridgeW;
+    bx.save(); bx.translate(2,-2); path(bx); bx.restore();
+  }
+  for(let i=0;i<150;i++) worm(7+Math.random()*4, 3+Math.random()*2);
+  // pembuluh halus di permukaan
+  for(let i=0;i<44;i++){
+    let px=Math.random()*W, py=Math.random()*H, a=Math.random()*Math.PI*2;
+    x.strokeStyle = Math.random()<0.6 ? 'rgba(150,30,40,0.28)' : 'rgba(60,80,160,0.22)';
+    x.lineWidth = 0.8+Math.random()*1.1; x.beginPath(); x.moveTo(px,py);
+    for(let s=0;s<14;s++){ a+=(Math.random()-0.5)*0.9; px+=Math.cos(a)*9; py+=Math.sin(a)*9; x.lineTo(px,py); }
+    x.stroke();
+  }
+  return { map: toTex(c), bump: toTex(b) };
+})();
+// Folia cerebellum: strip horizontal rapat dengan spacing acak + variasi warna (anatomis).
+const foliaTex = (()=>{
+  const W=512, H=256;
+  const c = makeCanvas(W,H), x = c.getContext('2d');
+  const b = makeCanvas(W,H), bx = b.getContext('2d');
+  const g = x.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#d8948c'); g.addColorStop(1,'#b4646c');
+  x.fillStyle=g; x.fillRect(0,0,W,H);
+  bx.fillStyle='#808080'; bx.fillRect(0,0,W,H);
+  
+  // --- Generate random folia y-positions dengan distribusi Gaussian + jitter ---
+  const foliaYs = [];
+  for(let i=0;i<80;i++){
+    // Gaussian-like spacing: rata-rata 3px, variasi ±2.5px
+    const mean = i * 3.2 + 0.5;
+    const sigma = 1.8;
+    let y = mean + sigma * Math.sqrt(-2*Math.log(Math.random()))*Math.sin(Math.random()*Math.PI*2);
+    if(y>H-2) y = H - 2;
+    foliaYs.push(y);
+  }
+  // Sort + unique (hindari overlap)
+  foliaYs.sort((a,b)=>a-b);
+  
+  for(let fi=0;fi<foliaYs.length;fi++){
+    const yy = foliaYs[fi];
+    // Variasi amplitude gelombang per-folia
+    const amp = 1.2+Math.random()*2.8;
+    const wob = Math.sin(yy*0.35)*2 + Math.random()*1.5;
+    
+    // Warna bervariasi: folia terang vs lekukan gelap
+    const isDark = Math.random()<0.35;
+    x.strokeStyle = isDark ? 'rgba(100,45,55,0.38)' : 'rgba(245,210,200,0.28)';
+    x.lineWidth = isDark ? 1.6 : 1.2;
+    
+    bx.strokeStyle = isDark ? 'rgba(30,20,30,0.48)' : 'rgba(230,220,220,0.42)';
+    bx.lineWidth = 1.3;
+    
+    x.beginPath(); x.moveTo(0,yy+wob);
+    bx.beginPath(); bx.moveTo(0,yy+wob);
+    
+    // Gelombang folia: frekuensi sedikit acak agar tidak repetitive
+    const freq = 0.045+Math.random()*0.01;
+    for(let px=0;px<=W;px+=16){
+      const wave = Math.sin(px*freq+yy)*amp;
+      x.lineTo(px, yy+wob+wave);
+      bx.lineTo(px, yy+wob+wave);
+    }
+    x.stroke(); bx.stroke();
+  }
+  
+  // Tambah micro-gyri: garis super tipis di antara folia utama
+  for(let i=0;i<40;i++){
+    const py = 2+Math.random()*(H-4);
+    x.strokeStyle='rgba(255,230,220,0.12)'; x.lineWidth=0.8;
+    bx.strokeStyle='rgba(220,210,210,0.25)'; bx.lineWidth=0.6;
+    x.beginPath(); x.moveTo(0,py);
+    bx.beginPath(); bx.moveTo(0,py);
+    for(let px=0;px<=W;px+=20){
+      x.lineTo(px, py+Math.sin(px*0.07+py)*0.8);
+      bx.lineTo(px, py+Math.sin(px*0.07+py)*0.8);
+    }
+    x.stroke(); bx.stroke();
+  }
+  
+  return { map: toTex(c), bump: toTex(b) };
+})();
+// Paru: tekstur lobulus organik + pleura kilau + bronko-arterial network + bump terpisah.
+const lungTex = (()=>{
+  const W=512, H=512;
+  const c = makeCanvas(W,H), x = c.getContext('2d');
+  const b = makeCanvas(W,H), bx = b.getContext('2d');
+  // dasar warna: gradien saturasi lebih, midtones naik
+  const g = x.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#e86c76'); g.addColorStop(0.5,'#cf4a58'); g.addColorStop(1,'#b83848');
+  x.fillStyle=g; x.fillRect(0,0,W,H);
+  bx.fillStyle='#666'; bx.fillRect(0,0,W,H);
+  
+  // --- Bump: alveolar surface noise (high-freq) + lobule boundary ridge (low-freq) ---
+  for(let i=0;i<15000;i++){
+    bx.fillStyle = Math.random()<0.5?'rgba(255,255,255,0.35)':'rgba(0,0,0,0.35)';
+    bx.fillRect(Math.random()*W, Math.random()*H, 1.8, 1.8);
+  }
+  for(let i=0;i<240;i++){
+    const px=Math.random()*W, py=Math.random()*H, r=8+Math.random()*22;
+    const val = Math.random();
+    bx.fillStyle = val<0.5?'rgba(255,255,255,0.18)':'rgba(0,0,0,0.18)';
+    bx.beginPath(); bx.arc(px,py,r,0,7); bx.fill();
+  }
+  // --- Lobulus cloudlets: Voronoi-like soft blobs, variasi kuat ---
+  x.globalCompositeOperation='screen';
+  for(let i=0;i<120;i++){
+    const px=Math.random()*W, py=Math.random()*H, r=20+Math.random()*55;
+    const alpha = 0.09+Math.random()*0.12;
+    const gr = x.createRadialGradient(px,py,0,px,py,r);
+    gr.addColorStop(0,`rgba(255,220,218,${alpha})`);
+    gr.addColorStop(1,'rgba(255,255,255,0)');
+    x.fillStyle=gr; x.beginPath(); x.arc(px,py,r,0,7); x.fill();
+  }
+  x.globalCompositeOperation='source-over';
+  // --- Pleura sheen: diagonal banding halus (simulasi kilau udara lembab) ---
+  x.globalCompositeOperation='overlay';
+  for(let k=0;k<5;k++){
+    const y=k*H/5;
+    const gr = x.createLinearGradient(0,y,W,y);
+    gr.addColorStop(0,'rgba(255,255,255,0)');
+    gr.addColorStop(0.4,'rgba(255,255,255,0.04)');
+    gr.addColorStop(0.6,'rgba(255,255,255,0.08)');
+    gr.addColorStop(1,'rgba(255,255,255,0)');
+    x.fillStyle=gr; x.fillRect(0,y,H/5,1.5);
+  }
+  // --- Bronko-arterial network: beberapa cabang besar, tidak banyak kapiler ---
+  x.globalCompositeOperation='source-over';
+  function bronchoArtery(cx,cy,angle,length,stages){
+    let px=cx, py=cy, a=angle, w=6*Math.random()+3.5;
+    for(let s=0;s<stages;s++){
+      x.strokeStyle= `rgba(${s%2?130:70},${s%2?25:80},${s%2?40:150},${0.22+Math.random()*0.14})`;
+      x.lineWidth=w; x.beginPath(); x.moveTo(px,py);
+      for(let k=0;k<6;k++){ a+=(Math.random()-0.5)*0.65; px+=Math.cos(a)*12; py+=Math.sin(a)*12; x.lineTo(px,py); }
+      x.stroke();
+      w*=0.72; if(w<1.2) break;
+    }
+  }
+  const base=[['R',0.62,0.18],['B',0.38,0.22]];
+  for(let j=0;j<base.length;j++){
+    const [ck,fx,fy]=base[j];
+    for(let n=0;n<(j===0?4:3);n++){
+      bronchoArtery(W*fx,W*fy+30+(n%2)*80,(j===0?Math.PI/6:-Math.PI/6),null,n>1?13:10);
+    }
+  }
+  return { map: toTex(c), bump: toTex(b) };
+})();
+// Miokardium: serat otot diagonal + lemak epikardium + arteri koroner + bump.
+const heartTex = (()=>{
+  const W=512, H=512;
+  const c = makeCanvas(W,H), x = c.getContext('2d');
+  const b = makeCanvas(W,H), bx = b.getContext('2d');
+  const g = x.createLinearGradient(0,0,W,H);
+  g.addColorStop(0,'#bd313d'); g.addColorStop(0.55,'#a02330'); g.addColorStop(1,'#7c1424');
+  x.fillStyle=g; x.fillRect(0,0,W,H);
+  bx.fillStyle='#808080'; bx.fillRect(0,0,W,H);
+  // serat otot: garis diagonal bergelombang halus
+  for(let i=0;i<260;i++){
+    const py = Math.random()*H, amp = 2+Math.random()*4, tone = Math.random();
+    x.strokeStyle = tone<0.5 ? 'rgba(255,120,120,0.10)' : 'rgba(70,8,18,0.14)';
+    x.lineWidth = 1+Math.random()*1.6;
+    bx.strokeStyle = tone<0.5 ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)';
+    bx.lineWidth = 1.2;
+    const ph = Math.random()*7;
+    x.beginPath(); bx.beginPath();
+    for(let px=-10;px<=W+10;px+=14){
+      const qy = py + (px/W)*46 + Math.sin(px*0.03+ph)*amp;
+      px<0 ? (x.moveTo(px,qy), bx.moveTo(px,qy)) : (x.lineTo(px,qy), bx.lineTo(px,qy));
+    }
+    x.stroke(); bx.stroke();
+  }
+  // bercak lemak kekuningan di sekitar alur koroner (fat pad)
+  for(let i=0;i<26;i++){
+    const px=Math.random()*W, py=Math.random()*H*0.45, r=8+Math.random()*30;
+    const rg = x.createRadialGradient(px,py,0,px,py,r);
+    rg.addColorStop(0,'rgba(235,200,140,0.20)'); rg.addColorStop(1,'rgba(235,200,140,0)');
+    x.fillStyle=rg; x.beginPath(); x.arc(px,py,r,0,7); x.fill();
+  }
+  // Epicardial fat pads: 6 patch besar di sulcus interventricularis + coronary groove
+  const fatPads = [
+    [W*0.42, W*0.28, 45, Math.PI/8],   // anterior interventricular sulcus kanan
+    [W*0.58, W*0.32, 42, -Math.PI/8],  // anterior interventricular sulcus kiri
+    [W*0.55, W*0.55, 38, Math.PI/4],   // right coronary sulcus
+    [W*0.38, W*0.52, 36, -Math.PI/4],  // left coronary sulcus
+    [W*0.48, W*0.62, 40, 0],           // posterior interventricular sulcus
+    [W*0.50, W*0.75, 35, Math.PI/2]    // coronary sinus location
+  ];
+  fatPads.forEach(([cx,cy,sz,a0])=>{
+    // Oval fat pad dengan gradient lembut
+    x.save();
+    x.translate(cx, cy);
+    x.rotate(a0);
+    for(let j=-1;j<=1;j++){
+      const offset=j*sz*0.6;
+      const rg = x.createRadialGradient(offset,0,0,offset,0,sz);
+      rg.addColorStop(0,'rgba(245,215,165,0.28)');
+      rg.addColorStop(0.6,'rgba(245,215,165,0.12)');
+      rg.addColorStop(1,'rgba(245,215,165,0)');
+      x.fillStyle=rg;
+      x.beginPath();
+      x.ellipse(0,0,sz,sz*0.65,0,0,Math.PI*2);
+      x.fill();
+    }
+    x.restore();
+  });
+  // Coronary sinus tube: tabung kecil biru tua di posterior
+  x.strokeStyle='rgba(80,90,130,0.35)'; x.lineWidth=2.2; x.lineCap='round';
+  x.beginPath(); x.moveTo(W*0.5-20,W*0.78); x.lineTo(W*0.5+20,W*0.72); x.stroke();
+  
+  // arteri koroner: pohon bercabang merah terang menurun dari atas
+  function coronary(sx, lean){
+    x.strokeStyle='rgba(255,90,85,0.75)'; x.lineCap='round';
+    let px=sx, py=10, a=Math.PI/2+lean, w=4.5;
+    const pts=[[px,py]];
+    for(let s=0;s<26 && w>0.6;s++){
+      a += (Math.random()-0.5)*0.55; px+=Math.cos(a)*16; py+=Math.sin(a)*16;
+      pts.push([px,py]);
+      x.lineWidth=w; x.beginPath(); x.moveTo(pts[s][0],pts[s][1]); x.lineTo(px,py); x.stroke();
+      if(s%4===1 && w>1.4){ // cabang samping
+        let bx2=px, by2=py, ba=a+(Math.random()<0.5?0.9:-0.9), bw=w*0.55;
+        x.lineWidth=bw; x.beginPath(); x.moveTo(bx2,by2);
+        for(let k=0;k<8;k++){ ba+=(Math.random()-0.5)*0.4; bx2+=Math.cos(ba)*12; by2+=Math.sin(ba)*12; x.lineTo(bx2,by2); }
+        x.stroke();
+      }
+      w*=0.94;
+    }
+  }
+  coronary(W*0.42, 0.15); coronary(W*0.58, -0.2);
+  return { map: toTex(c), bump: toTex(b) };
+})();
+// Hati: granular lobulus + kilau kapsul + cabang portal + bump.
+const liverTex = (()=>{
+  const W=512, H=512;
+  const c = makeCanvas(W,H), x = c.getContext('2d');
+  const b = makeCanvas(W,H), bx = b.getContext('2d');
+  const g = x.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#a83a32'); g.addColorStop(1,'#7c1e24');
+  x.fillStyle=g; x.fillRect(0,0,W,H);
+  bx.fillStyle='#808080'; bx.fillRect(0,0,W,H);
+  for(let i=0;i<24;i++){ // kilau kapsul Glisson
+    const px=Math.random()*W, py=Math.random()*H, r=30+Math.random()*90;
+    const rg = x.createRadialGradient(px,py,0,px,py,r);
+    rg.addColorStop(0, Math.random()<0.5?'rgba(255,150,130,0.12)':'rgba(60,8,14,0.12)');
+    rg.addColorStop(1,'rgba(255,255,255,0)');
+    x.fillStyle=rg; x.beginPath(); x.arc(px,py,r,0,7); x.fill();
+  }
+  x.lineWidth=1; // septa lobulus samar
+  for(let i=0;i<200;i++){
+    const px=Math.random()*W, py=Math.random()*H, r=5+Math.random()*10;
+    const a0=Math.random()*Math.PI*2;
+    x.strokeStyle='rgba(255,170,150,0.10)';
+    bx.strokeStyle='rgba(0,0,0,0.22)'; bx.lineWidth=1; bx.beginPath();
+    x.beginPath();
+    for(let s=0;s<=6;s++){
+      const a=a0+s/6*Math.PI*2, qx=px+Math.cos(a)*r, qy=py+Math.sin(a)*r;
+      s ? (x.lineTo(qx,qy), bx.lineTo(qx,qy)) : (x.moveTo(qx,qy), bx.moveTo(qx,qy));
+    }
+    x.stroke(); bx.stroke();
+  }
+  for(let i=0;i<2200;i++){ // granular halus
+    x.fillStyle = Math.random()<0.5?'rgba(255,140,120,0.10)':'rgba(50,8,12,0.12)';
+    x.fillRect(Math.random()*W, Math.random()*H, 1.4, 1.4);
+  }
+  for(let i=0;i<10;i++){ // cabang vena porta gelap
+    let px=Math.random()*W, py=H*0.55+Math.random()*H*0.4, a=-Math.PI/2+(Math.random()-0.5);
+    x.strokeStyle='rgba(80,12,20,0.35)'; x.lineWidth=2.5; x.beginPath(); x.moveTo(px,py);
+    for(let s=0;s<10;s++){ a+=(Math.random()-0.5)*0.7; px+=Math.cos(a)*14; py+=Math.sin(a)*14; x.lineTo(px,py); }
+    x.stroke();
+  }
+  return { map: toTex(c), bump: toTex(b) };
+})();
+// Ginjal: granular korteks + striasi medula + kilau kapsul + bump.
+const kidneyTex = (()=>{
+  const W=512, H=512;
+  const c = makeCanvas(W,H), x = c.getContext('2d');
+  const b = makeCanvas(W,H), bx = b.getContext('2d');
+  const g = x.createLinearGradient(0,0,W,0);
+  g.addColorStop(0,'#8e3226'); g.addColorStop(0.5,'#a84a40'); g.addColorStop(1,'#7c2420');
+  x.fillStyle=g; x.fillRect(0,0,W,H);
+  bx.fillStyle='#808080'; bx.fillRect(0,0,W,H);
+  for(let i=0;i<160;i++){ // striasi medula vertikal samar
+    const px=Math.random()*W, py=Math.random()*H, len=15+Math.random()*40;
+    x.strokeStyle='rgba(255,160,140,0.10)'; x.lineWidth=1+Math.random();
+    bx.strokeStyle='rgba(255,255,255,0.20)'; bx.lineWidth=1;
+    x.beginPath(); x.moveTo(px,py); x.lineTo(px+(Math.random()-0.5)*6,py+len); x.stroke();
+    bx.beginPath(); bx.moveTo(px,py); bx.lineTo(px,py+len); bx.stroke();
+  }
+  for(let i=0;i<1500;i++){
+    x.fillStyle = Math.random()<0.5?'rgba(255,150,130,0.10)':'rgba(50,8,10,0.12)';
+    x.fillRect(Math.random()*W, Math.random()*H, 1.4, 1.4);
+  }
+  for(let i=0;i<20;i++){
+    const px=Math.random()*W, py=Math.random()*H, r=25+Math.random()*60;
+    const rg = x.createRadialGradient(px,py,0,px,py,r);
+    rg.addColorStop(0,'rgba(255,165,150,0.12)'); rg.addColorStop(1,'rgba(255,255,255,0)');
+    x.fillStyle=rg; x.beginPath(); x.arc(px,py,r,0,7); x.fill();
+  }
+  return { map: toTex(c), bump: toTex(b) };
+})();
+
+/* ================================================================
+   ORGAN-ORGAN
+   ================================================================ */
+const organs = new THREE.Group(); scene.add(organs);
+
+function makeBrain(){
+  const R = 0.78;
+  const g = new THREE.SphereGeometry(R, 96, 72);
+  const p = g.attributes.position, v = new THREE.Vector3();
+  const colors = new Float32Array(p.count*3);
+  const cTop = new THREE.Color(1,1,1), cDeep = new THREE.Color(0.74,0.60,0.60);
+  const cc = new THREE.Color();
+  for(let i=0;i<p.count;i++){
+    v.fromBufferAttribute(p,i);
+    const nx = v.x/R, ny = v.y/R, nz = v.z/R;
+    // domain warp agar belitan organik, bukan grid sinus kaku
+    const wx = Math.sin(ny*4.2+nz*3.1)*0.6 + Math.sin(nz*7.3+nx*2.0)*0.3;
+    const wy = Math.sin(nz*3.7+nx*4.4)*0.6 + Math.sin(nx*6.1+ny*2.3)*0.3;
+    const wz = Math.sin(nx*4.9+ny*3.3)*0.6 + Math.sin(ny*6.7+nz*2.1)*0.3;
+    // relief gyri: gelombang halus frekuensi sedang (9-11), tanpa lipatan tajam
+    const s1 = Math.sin((nx+wx*0.35)*9.0 + (ny+wy*0.35)*7.0);
+    const s2 = Math.sin((ny+wy*0.35)*10.0 - (nz+wz*0.35)*8.0 + 1.7);
+    const s3 = Math.sin((nz+wz*0.35)*11.0 + (nx+wx*0.35)*6.0 + 0.6);
+    const ridge = (s1*s2 + s2*s3*0.5 + s1*s3*0.5) * 0.25 + 0.5; // 0..1 halus
+    const gyri = (ridge - 0.5) * 0.035;
+    const low = 0.02*Math.sin(nx*3+ny*2)*Math.sin(ny*4-nz*3) + 0.012*Math.sin(nz*5+nx*4);
+    const rad = R + gyri + low;
+    // bentuk ellipsoid: agak pipih vertikal, memanjang depan-belakang
+    let x = nx*rad*1.0, y = ny*rad*0.88, z = nz*rad*1.22;
+    // lobus temporal: tonjolan bawah-samping kiri-kanan
+    const temporal = Math.exp(-Math.pow((Math.abs(nx)-0.55)/0.35,2)) * Math.exp(-Math.pow((ny+0.55)/0.4,2));
+    x *= (1 + temporal*0.12); y -= temporal*0.06;
+    // ratakan dasar otak
+    if(y < -0.38) y = -0.38 + (y+0.38)*0.35;
+    // longitudinal fissure: belahan hemisfer kiri-kanan di sisi atas
+    const topness = Math.max(0, ny);
+    const pinch = Math.exp(-Math.pow(nx/0.12,2)) * topness;
+    x *= (1 - pinch*0.38);
+    y -= Math.exp(-Math.pow(nx/0.09,2)) * (ny>0 ? 0.16*(0.25+0.75*topness) : 0.02);
+    p.setXYZ(i, x, y, z);
+    // AO verteks: celah sulci sedikit lebih gelap (lembut, tidak gosong)
+    const ao = THREE.MathUtils.clamp(0.72 + (ridge-0.5)*0.5 + low*2, 0, 1);
+    cc.copy(cDeep).lerp(cTop, ao);
+    colors[i*3]=cc.r; colors[i*3+1]=cc.g; colors[i*3+2]=cc.b;
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(colors,3));
+  g.computeVertexNormals();
+  const brain = new THREE.Mesh(g, new THREE.MeshStandardMaterial({
+    map: brainTex.map, bumpMap: brainTex.bump, bumpScale: 0.012,
+    roughness: 0.5, metalness: 0.02, vertexColors: true,
+    emissive: new THREE.Color(0x3a0d0d), emissiveIntensity: 0.15
+  }));
+  brain.position.set(0,4.95,-0.2);
+
+  // --- Cerebellum (otak kecil): bola pipih berfolia di belakang-bawah ---
+  const cg = new THREE.SphereGeometry(0.32, 48, 32);
+  const cp = cg.attributes.position, cv = new THREE.Vector3();
+  for(let i=0;i<cp.count;i++){
+    cv.fromBufferAttribute(cp,i);
+    const n = 0.004*Math.sin(cv.y*28 + Math.sin(cv.x*8)*2) + 0.003*Math.sin(cv.x*20+cv.z*14);
+    cv.setLength(0.32+n);
+    cp.setXYZ(i, cv.x, cv.y, cv.z);
+  }
+  cg.computeVertexNormals();
+  const cerebellum = new THREE.Mesh(cg, organMat(foliaTex.map,
+    {bump: foliaTex.bump, bumpScale: 0.008, emissive:0x331010, emissiveIntensity:0.15, rough:0.6}));
+  cerebellum.scale.set(1.25,0.72,0.95);
+  cerebellum.position.set(0,4.5,-0.45);
+
+  // --- Brainstem: midbrain + pons + medulla ---
+  const stemMat = organMat(brainTex.map,{emissive:0x3a0e0e,emissiveIntensity:0.2,rough:0.55,color:0xd8a8a2});
+  const pons = new THREE.Mesh(new THREE.SphereGeometry(0.16,24,18), stemMat);
+  pons.scale.set(1,0.85,0.9); pons.position.set(0,4.38,-0.05);
+  const medulla = new THREE.Mesh(new THREE.CylinderGeometry(0.10,0.14,0.55,16), stemMat);
+  medulla.position.set(0,3.97,-0.20); medulla.rotation.x=0.12;
+  const grp = new THREE.Group(); grp.add(brain, cerebellum, pons, medulla); return grp;
+}
+const brainGrp = makeBrain(); organs.add(brainGrp);
+// simpan skala dasar tiap mesh agar denyut memuai di tempat (bukan dari origin grup)
+brainGrp.children.forEach(m=>{ m.userData.baseScale = m.scale.clone(); });
+
+function makeLung(x, rotY){
+  const side = x < 0 ? -1 : 1; // -1 = kiri, +1 = kanan
+  const R = 1.05;
+  const g = new THREE.SphereGeometry(R, 64, 48);
+  const p = g.attributes.position, v = new THREE.Vector3();
+  const colors = new Float32Array(p.count*3);
+  const cTop = new THREE.Color(1,1,1), cDeep = new THREE.Color(0.62,0.42,0.44);
+  const cc = new THREE.Color();
+  const sstep = (a,b,t)=>{ const k = THREE.MathUtils.clamp((t-a)/(b-a),0,1); return k*k*(3-2*k); };
+  for(let i=0;i<p.count;i++){
+    v.fromBufferAttribute(p,i);
+    const nx = v.x/R, ny = v.y/R, nz = v.z/R;
+    // koordinat lateral: +1 = sisi luar, -1 = sisi mediastinal (menghadap jantung)
+    const lat = nx*side, med = -nx*side;
+    let rad = R;
+    // relief permukaan organik halus
+    rad += 0.010*Math.sin(nx*7+ny*5)*Math.sin(ny*6-nz*5) + 0.006*Math.sin(nz*11+nx*6);
+    // fisura: oblique (keduanya) + horizontal (kanan) — alur sempit di permukaan luar/depan
+    const surfW = 0.35 + 0.65*Math.max(0, nz)*0.5 + 0.65*Math.max(0, lat)*0.5;
+    const obliq = Math.exp(-Math.pow((ny-(0.35-0.55*lat))/0.09, 2)) * surfW;
+    let fiss = obliq;
+    if(side > 0) fiss += Math.exp(-Math.pow((ny-0.38)/0.07, 2)) * Math.max(0, nz) * Math.max(0, lat) * 0.9;
+    rad -= Math.min(1.2, fiss)*0.05;
+    // lesak hilum di sisi mediastinal (pintu bronkus + pembuluh)
+    const hilum = Math.exp(-(Math.pow((med-0.75)/0.38,2) + Math.pow((ny-0.12)/0.38,2))) * (0.4+0.6*Math.max(0,nz*0.5+0.5));
+    rad -= Math.min(1, hilum)*0.16;
+    let px = nx*rad, py = ny*rad*1.55, pz = nz*rad*0.72;
+    // apeks menyempit ke atas
+    const taper = 1 - 0.34*sstep(0.05, 1.0, ny);
+    px *= taper; pz *= (1 - 0.25*sstep(0.05, 1.0, ny));
+    // basis melebar + mendatar (diafragma)
+    if(ny < 0){ const k = -ny; px *= (1+0.10*k); pz *= (1+0.06*k); }
+    if(py < -1.32) py = -1.32 + (py+1.32)*0.3;
+    // datarkan sisi mediastinal
+    const flat = Math.max(0, med)*sstep(-0.1, 0.9, med);
+    px += side * flat * flat * 0.30;
+    // cardiac notch (paru kiri: takik depan-bawah untuk jantung)
+    if(side < 0){
+      const notch = Math.exp(-(Math.pow((med-0.35)/0.35,2)+Math.pow((ny+0.35)/0.3,2)+Math.pow((nz-0.55)/0.45,2)));
+      px -= notch*0.22;
+    }
+    p.setXYZ(i, px, py, pz);
+    const ao = THREE.MathUtils.clamp(0.78 - Math.min(1.2,fiss)*0.28 - Math.min(1,hilum)*0.22, 0, 1);
+    cc.copy(cDeep).lerp(cTop, ao);
+    colors[i*3]=cc.r; colors[i*3+1]=cc.g; colors[i*3+2]=cc.b;
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(colors,3));
+  g.computeVertexNormals();
+  const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({
+    map: lungTex.map, bumpMap: lungTex.bump, bumpScale: 0.015,
+    roughness: 0.55, metalness: 0.02, vertexColors: true,
+    emissive: new THREE.Color(0x400a10), emissiveIntensity: 0.28
+  }));
+  m.position.set(x,1.25,0); m.rotation.z=rotY;
+  return m;
+}
+const lungL = makeLung(-2.45, 0.12), lungR = makeLung(2.45, -0.12);
+organs.add(lungL, lungR);
+
+// --- Saluran napas: trakea + bronkus utama + cabang lobar ---
+const airwayMat = new THREE.MeshStandardMaterial({
+  color: 0xd89890, roughness: 0.55, metalness: 0.02,
+  emissive: new THREE.Color(0x3a0e0e), emissiveIntensity: 0.2
+});
+const airwayGrp = new THREE.Group();
+{
+  // trakea: tabung vertikal + cincin kartilago halus (anatomis diameter 22–25mm)
+  const tg = new THREE.CylinderGeometry(0.028, 0.024, 1.7, 20, 40, false);
+  const tp = tg.attributes.position, tv = new THREE.Vector3();
+  for(let i=0;i<tp.count;i++){
+    tv.fromBufferAttribute(tp,i);
+    const k = 1 + 0.055*Math.sin(tv.y*38);
+    tp.setXYZ(i, tv.x*k, tv.y, tv.z*k);
+  }
+  tg.computeVertexNormals();
+  const trachea = new THREE.Mesh(tg, airwayMat);
+  trachea.position.set(0, 3.05, 0.15);
+  airwayGrp.add(trachea);
+  // karina
+  const carina = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 12), airwayMat);
+  carina.position.set(0, 2.32, 0.14); carina.scale.set(1.2, 0.7, 1);
+  airwayGrp.add(carina);
+  // bronkus utama → hilum tiap paru + satu cabang lobar atas
+  const bronchi = [
+    [[0,2.35,0.14],[0.6,2.0,0.16],[1.1,1.7,0.18],[1.58,1.5,0.2]],
+    [[0,2.35,0.14],[-0.6,2.0,0.16],[-1.1,1.7,0.18],[-1.58,1.5,0.2]],
+    [[0.9,1.82,0.18],[1.3,2.05,0.15],[1.7,2.3,0.3]], // menembus ke dalam paru
+    [[-0.9,1.82,0.18],[-1.3,2.05,0.15],[-1.7,2.3,0.3]]  // menembus ke dalam paru
+  ];
+  bronchi.forEach((pts, bi)=>{
+    const curve = new THREE.CatmullRomCurve3(pts.map(q=>new THREE.Vector3(q[0],q[1],q[2])));
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 32, bi<2?0.085:0.06, 10, false), airwayMat);
+    airwayGrp.add(tube);
+  });
+}
+organs.add(airwayGrp);
+
+const heart = new THREE.Group();
+const myoMat = new THREE.MeshStandardMaterial({
+  map: heartTex.map, bumpMap: heartTex.bump, bumpScale: 0.015,
+  roughness: 0.42, metalness: 0.03, vertexColors: true,
+  emissive: new THREE.Color(0x550a12), emissiveIntensity: 0.45
+});
+const greatMatR = new THREE.MeshStandardMaterial({color:0xc23a44,roughness:0.45,emissive:0x5a1218,emissiveIntensity:0.5});
+const greatMatB = new THREE.MeshStandardMaterial({color:0x2a4fc0,roughness:0.45,emissive:0x112266,emissiveIntensity:0.5});
+const atriumMat = myoMat.clone(); atriumMat.color.set(0xe6b8b8);
+
+// --- Massa ventrikel: tonjolan LV, apeks ke kiri-bawah, alur interventrikular ---
+const ventricleGrp = new THREE.Group();
+{
+  const R = 0.9;
+  const g = new THREE.SphereGeometry(R, 64, 48);
+  const p = g.attributes.position, v = new THREE.Vector3();
+  const colors = new Float32Array(p.count*3);
+  const cTop = new THREE.Color(1,1,1), cDeep = new THREE.Color(0.60,0.38,0.40);
+  const cc = new THREE.Color();
+  const sstep = (a,b,t)=>{ const k = THREE.MathUtils.clamp((t-a)/(b-a),0,1); return k*k*(3-2*k); };
+  for(let i=0;i<p.count;i++){
+    v.fromBufferAttribute(p,i);
+    const nx = v.x/R, ny = v.y/R, nz = v.z/R;
+    let rad = R + 0.02*Math.sin(nx*6+ny*4)*Math.sin(ny*7-nz*5) + 0.015*Math.sin(nz*9+nx*5);
+    // ventrikel kiri: massa posterolateral
+    const lv = Math.exp(-(Math.pow((nx+0.45)/0.6,2)+Math.pow(ny/0.8,2)+Math.pow((nz+0.2)/0.8,2)));
+    rad += lv*0.12;
+    // alur interventrikular anterior
+    const groove = Math.exp(-Math.pow((nx-0.05)/0.13,2)) * Math.max(0,nz) * (1-Math.abs(ny)*0.45);
+    rad -= Math.min(1,groove)*0.07;
+    let px = nx*rad, py = ny*rad*1.18, pz = nz*rad*0.9;
+    // apeks: meruncing + geser ke kiri-bawah
+    const k = sstep(0.1,-1.0,ny);
+    px = px*(1-0.28*k) - 0.30*k; pz *= (1-0.20*k);
+    // sisi kanan didatarkan (ruang atrium kanan)
+    if(nx > 0.3) px -= (nx-0.3)*0.28;
+    p.setXYZ(i, px, py, pz);
+    const ao = THREE.MathUtils.clamp(0.8 - Math.min(1,groove)*0.3, 0, 1);
+    cc.copy(cDeep).lerp(cTop, ao);
+    colors[i*3]=cc.r; colors[i*3+1]=cc.g; colors[i*3+2]=cc.b;
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(colors,3));
+  g.computeVertexNormals();
+  const ventricle = new THREE.Mesh(g, myoMat);
+  ventricle.position.set(-0.08,-0.05,0.02); ventricle.rotation.z = 0.18;
+  ventricleGrp.add(ventricle);
+}
+heart.add(ventricleGrp);
+
+// --- Atrium (konstraksi kecil, fase berlawanan) ---
+const atriumGrp = new THREE.Group();
+{
+  const ra = new THREE.Mesh(new THREE.SphereGeometry(0.42,32,24), atriumMat);
+  ra.scale.set(0.9,1.0,0.85); ra.position.set(0.52,0.42,-0.05);
+  const la = new THREE.Mesh(new THREE.SphereGeometry(0.38,32,24), atriumMat);
+  la.scale.set(1.0,0.9,0.8); la.position.set(-0.12,0.5,-0.42);
+  const aur = new THREE.Mesh(new THREE.SphereGeometry(0.2,20,14), atriumMat);
+  aur.scale.set(1,1.3,0.8); aur.position.set(-0.5,0.55,0.3); aur.rotation.z = 0.5;
+  atriumGrp.add(ra, la, aur);
+}
+heart.add(atriumGrp);
+
+// --- Pembuluh besar (statis, tidak ikut memuai) ---
+function greatVessel(pts, radius, mat){
+  const curve = new THREE.CatmullRomCurve3(pts.map(q=>new THREE.Vector3(q[0],q[1],q[2])));
+  const m = new THREE.Mesh(new THREE.TubeGeometry(curve, 48, radius, 12, false), mat);
+  heart.add(m); return m;
+}
+// aorta: ascenden → arkus (3 cabang) → descenden posterior ke bawah jantung
+greatVessel([[0.0,0.45,0.1],[0.12,0.95,0.13],[0.05,1.35,0.12],[-0.35,1.45,0.08],[-0.55,1.0,-0.1],[-0.55,0.35,-0.35],[-0.45,-0.4,-0.42],[-0.35,-1.1,-0.35]], 0.13, greatMatR);
+greatVessel([[-0.12,1.42,0.1],[-0.18,1.7,0.1],[-0.2,1.9,0.1]], 0.055, greatMatR);   // brakiosefalika
+greatVessel([[0.02,1.45,0.11],[0.03,1.72,0.11],[0.03,1.92,0.11]], 0.05, greatMatR);  // karotis kiri
+greatVessel([[0.14,1.42,0.11],[0.2,1.68,0.1],[0.24,1.86,0.1]], 0.05, greatMatR);     // subklavia kiri
+// trunkus pulmonalis → bifurkasi ke tiap paru (ujung = start jalur paru eksisting)
+greatVessel([[0.1,0.15,0.18],[0.28,0.42,0.2],[0.3,0.6,0.12]], 0.12, greatMatB);      // trunkus
+greatVessel([[0.3,0.6,0.12],[0.38,0.5,-0.08],[0.32,0.25,-0.32]], 0.09, greatMatB);   // cabang kanan
+greatVessel([[0.3,0.6,0.12],[0.12,0.45,0.18],[0.3,0.3,0.15]], 0.09, greatMatB);    // cabang kiri (ujung = start jalur paru kiri)
+// vena cava superior + inferior (SIM masuk atrium kanan, INF turun hingga hati)
+greatVessel([[0.55,1.7,-0.15],[0.53,1.1,-0.13],[0.5,0.62,-0.08]], 0.11, greatMatB);  // SVC
+greatVessel([[0.42,-3.0,-0.15],[0.44,-1.5,-0.12],[0.45,0.05,-0.08]], 0.12, greatMatB); // IVC
+// 4 stub vena pulmonalis → atrium kiri (ujung lateral tertanam di paru)
+greatVessel([[-1.6,0.9,0.12],[-0.9,0.65,-0.02],[-0.35,0.55,-0.25]], 0.07, greatMatR);
+greatVessel([[1.6,0.9,0.12],[0.9,0.65,-0.05],[0.25,0.5,-0.3]], 0.07, greatMatR);
+// tutup ujung tabung yang terbuka (SVC + 3 cabang arkus) agar tak terlihat berongga
+[[0.55,1.7,-0.15,0.11,'B'],[-0.2,1.9,0.1,0.055,'R'],[0.03,1.92,0.11,0.05,'R'],[0.24,1.86,0.1,0.05,'R']].forEach(([cx,cy,cz,cr,ck])=>{
+  const cap = new THREE.Mesh(new THREE.SphereGeometry(cr,14,10), ck==='R'?greatMatR:greatMatB);
+  cap.position.set(cx,cy,cz); heart.add(cap);
+});
+heart.position.set(0.1,0,0.1);
+heart.children.forEach(m=>{ if(m.isMesh) m.userData.baseScale = m.scale.clone(); });
+ventricleGrp.children.forEach(m=>{ m.userData.baseScale = m.scale.clone(); });
+atriumGrp.children.forEach(m=>{ m.userData.baseScale = m.scale.clone(); });
+organs.add(heart);
+
+// --- Hati: lobus kanan besar + kiri meruncing, porta hepatis, ligamentum ---
+const liver = (()=>{
+  const g = new THREE.SphereGeometry(1, 64, 48);
+  const p = g.attributes.position, v = new THREE.Vector3();
+  const colors = new Float32Array(p.count*3);
+  const cTop = new THREE.Color(1,1,1), cDeep = new THREE.Color(0.60,0.36,0.36);
+  const cc = new THREE.Color();
+  const sstep = (a,b,t)=>{ const k = THREE.MathUtils.clamp((t-a)/(b-a),0,1); return k*k*(3-2*k); };
+  for(let i=0;i<p.count;i++){
+    v.fromBufferAttribute(p,i);
+    const nx = v.x, ny = v.y, nz = v.z; // R=1
+    let rad = 1 + 0.008*Math.sin(nx*9+ny*7)*Math.sin(ny*8-nz*6);
+    // porta hepatis: lesak di sisi bawah-tengah
+    const porta = Math.exp(-(Math.pow((nx-0.1)/0.3,2)+Math.pow((ny+0.75)/0.35,2)+Math.pow(nz/0.5,2)));
+    rad -= Math.min(1,porta)*0.14;
+    // ligamentum falciforme: garis depan vertikal
+    const lig = Math.exp(-Math.pow((nx-0.15)/0.05,2)) * Math.max(0,nz) * (1-Math.abs(ny)*0.6);
+    rad -= Math.min(1,lig)*0.03;
+    let px = nx*rad*1.75, py = ny*rad*0.72, pz = nz*rad*1.0;
+    // lobus kiri (-x) menipis jadi baji
+    if(nx < 0){ const k = -nx; pz *= (1-0.45*k); py *= (1-0.15*k); px *= (1+0.08*k); }
+    // kubah superior cembung, visera inferior agak datar
+    if(ny < -0.3) py = -0.3*0.72 + (py+0.3*0.72)*0.8;
+    p.setXYZ(i, px, py, pz);
+    const ao = THREE.MathUtils.clamp(0.8 - Math.min(1,porta)*0.35 - Math.min(1,lig)*0.15, 0, 1);
+    cc.copy(cDeep).lerp(cTop, ao);
+    colors[i*3]=cc.r; colors[i*3+1]=cc.g; colors[i*3+2]=cc.b;
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(colors,3));
+  g.computeVertexNormals();
+  const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({
+    map: liverTex.map, bumpMap: liverTex.bump, bumpScale: 0.012,
+    roughness: 0.38, metalness: 0.05, vertexColors: true,
+    emissive: new THREE.Color(0x4a1512), emissiveIntensity: 0.42
+  }));
+  m.position.set(0.15,-3.45,0); m.rotation.z = -0.12;
+  m.userData.baseScale = m.scale.clone();
+  return m;
+})();
+organs.add(liver);
+// kantung empedu: buah pir hijau kecil di bawah lobus kanan
+{
+  const gb = new THREE.Mesh(new THREE.SphereGeometry(0.22,24,18),
+    new THREE.MeshStandardMaterial({color:0x5a7a3a,roughness:0.35,emissive:0x1a2a0a,emissiveIntensity:0.3}));
+  gb.scale.set(0.8,1.25,0.8); gb.position.set(0.75,-3.95,0.35); gb.rotation.z = 0.2;
+  organs.add(gb);
+}
+
+function makeKidney(x){
+  const side = x < 0 ? -1 : 1; // hilum menghadap garis tengah (+ depan dikit)
+  const R = 0.42;
+  const g = new THREE.SphereGeometry(R, 48, 36);
+  const p = g.attributes.position, v = new THREE.Vector3();
+  const colors = new Float32Array(p.count*3);
+  const cTop = new THREE.Color(1,1,1), cDeep = new THREE.Color(0.60,0.36,0.36);
+  const cc = new THREE.Color();
+  for(let i=0;i<p.count;i++){
+    v.fromBufferAttribute(p,i);
+    const nx = v.x/R, ny = v.y/R, nz = v.z/R;
+    const med = -nx*side; // +1 = sisi medial (menghadap tengah)
+    let rad = R + 0.006*Math.sin(nx*10+ny*8)*Math.sin(ny*9-nz*7);
+    // hilum: lesak vertikal di sisi medial
+    const hilum = Math.exp(-(Math.pow((med-0.8)/0.4,2)+Math.pow(ny/0.55,2)+Math.pow((nz-0.25)/0.7,2)));
+    rad -= Math.min(1,hilum)*0.12;
+    let px = nx*rad*0.72, py = ny*rad*1.2, pz = nz*rad*0.72;
+    // kutub atas sedikit lebih penuh, bawah meruncing ke ureter
+    if(ny > 0) px *= (1+0.06*ny);
+    p.setXYZ(i, px, py, pz);
+    const ao = THREE.MathUtils.clamp(0.8 - Math.min(1,hilum)*0.4, 0, 1);
+    cc.copy(cDeep).lerp(cTop, ao);
+    colors[i*3]=cc.r; colors[i*3+1]=cc.g; colors[i*3+2]=cc.b;
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(colors,3));
+  g.computeVertexNormals();
+  const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({
+    map: kidneyTex.map, bumpMap: kidneyTex.bump, bumpScale: 0.01,
+    roughness: 0.42, metalness: 0.03, vertexColors: true,
+    emissive: new THREE.Color(0x4a1512), emissiveIntensity: 0.42
+  }));
+  m.position.set(x,-5.35,0);
+  return m;
+}
+organs.add(makeKidney(-1.35), makeKidney(1.35));
+// ureter: tabung ramping dari hilum ke bawah (pucat, beda dari pembuluh darah)
+{
+  const uMat = new THREE.MeshStandardMaterial({color:0xd8a090,roughness:0.6,emissive:0x2a1008,emissiveIntensity:0.25});
+  [[-1.35,-1],[1.35,1]].forEach(([kx, side])=>{
+  const curve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(kx + side*-0.18, -5.45, 0.1),
+    new THREE.Vector3(kx + side*-0.28, -6.0, 0.05),
+    new THREE.Vector3(kx + side*-0.32, -6.7, -0.05),
+    new THREE.Vector3(kx + side*-0.35, -7.5, -0.1) // panjang ke bawah bingkai
+  ]);
+    organs.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 24, 0.05, 8, false), uMat));
+  });
+}
+
+/* ================================================================
+   SISTEM ALIRAN DARAH — SANGAT JELAS
+   ================================================================ */
+const glowTex   = glowTexture();
+const rbcOxy    = rbcTexture('rgba(255,180,40,ALPHA)');   // kuning-oranye terang
+const rbcDeoxy  = rbcTexture('rgba(90,170,255,ALPHA)');   // biru terang
+const flowTexOxy   = flowLineTexture();
+const flowTexDeoxy = flowLineTexture();
+
+const flows = [];
+let flowSpeedMul = 1;
+let densityMul = 2;
+let showTrails = true;
+let showFlowLines = true;
+let showMotes = true;
+document.getElementById('moteChk').onchange = e => { showMotes = e.target.checked; f_moteVisibility(); };
+function f_moteVisibility(){ oxyMotes.forEach(m=> m.visible = showMotes); }
+
+function addVessel(rawPts, kind){
+  const pts = rawPts.map(p => new THREE.Vector3(p[0],p[1],p[2]));
+  const curve = new THREE.CatmullRomCurve3(pts);
+  const isOxy = kind==='oxy';
+
+  // --- 1. Tabung dasar pembuluh ---
+  const tube = new THREE.Mesh(
+    new THREE.TubeGeometry(curve, 140, 0.075, 12, false),
+    new THREE.MeshStandardMaterial({
+      color: isOxy?0xcc2222:0x2244cc,
+      emissive: isOxy?0x661010:0x112266,
+      emissiveIntensity:0.6, roughness:0.4
+    }));
+  scene.add(tube);
+
+  // --- 2. Lapisan garis aliran bergerak di permukaan pembuluh ---
+  const flowTex = (isOxy?flowTexOxy:flowTexDeoxy).clone();
+  flowTex.needsUpdate = true;
+  flowTex.wrapS = flowTex.wrapT = THREE.RepeatWrapping;
+  flowTex.repeat.set(Math.max(6, Math.round(curve.getLength()*2)), 2);
+  const flowLineMat = new THREE.MeshBasicMaterial({
+    map: flowTex, transparent:true, opacity:0.95,
+    blending:THREE.NormalBlending, depthWrite:false,
+    color: isOxy?0xffffff:0xdff1ff
+  });
+  const flowLine = new THREE.Mesh(
+    new THREE.TubeGeometry(curve, 140, 0.084, 12, false), flowLineMat);
+  flowLine.visible = showFlowLines;
+  scene.add(flowLine);
+
+  // --- 3. Cincin denyut menjalar sepanjang pembuluh (pulse wave) ---
+  const ringCount = Math.round(curve.getLength()*1.2);
+  const ringGeo = new THREE.RingGeometry(0.1, 0.17, 20);
+  const rings = [];
+  for(let i=0;i<ringCount;i++){
+    const m = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({
+      color: isOxy?0xe0483f:0x2a6fd6, transparent:true, opacity:0,
+      blending:THREE.NormalBlending, depthWrite:false, side:THREE.DoubleSide }));
+    scene.add(m); rings.push(m);
+  }
+
+  // --- 4. Sel darah merah (sprite besar + ekor) ---
+  const nBase = Math.max(14, Math.round(curve.getLength()*3.2));
+  const n = Math.round(nBase * 2); // default density 2x
+  const trailLen = 5;              // jumlah titik ekor per sel
+
+  const cellGeo = new THREE.BufferGeometry();
+  cellGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n*3),3));
+  const cells = new THREE.Points(cellGeo, new THREE.PointsMaterial({
+    size:0.34, map: isOxy?rbcOxy:rbcDeoxy, transparent:true, opacity:1,
+    blending:THREE.NormalBlending, depthWrite:false, sizeAttenuation:true }));
+  scene.add(cells);
+
+  const trailGeo = new THREE.BufferGeometry();
+  trailGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n*trailLen*3),3));
+  const trail = new THREE.Points(trailGeo, new THREE.PointsMaterial({
+    size:0.24, map: isOxy?rbcOxy:rbcDeoxy, transparent:true, opacity:0.55,
+    blending:THREE.NormalBlending, depthWrite:false, sizeAttenuation:true }));
+  scene.add(trail);
+
+  // halo lembut mengikuti sel (membuat aliran tampak menyala)
+  const haloGeo = new THREE.BufferGeometry();
+  haloGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n*3),3));
+  const halo = new THREE.Points(haloGeo, new THREE.PointsMaterial({
+    size:0.8, map:glowTex, color: isOxy?0xff9a2a:0x3388ff, transparent:true, opacity:0.35,
+    blending:THREE.NormalBlending, depthWrite:false, sizeAttenuation:true }));
+  scene.add(halo);
+
+  flows.push({
+    curve, kind, isOxy, flowTex, flowLine, tube,
+    vesselLen: curve.getLength(),
+    rings, ringGeo, ringU: Math.random(),
+    cellCount:n, cells, cellGeo, trail, trailGeo, halo, haloGeo, trailLen,
+    u: Array.from({length:n},(_,i)=> (i/n + Math.random()*0.01) % 1),
+    baseSpeed: 0.06 + Math.random()*0.02
+  });
+}
+
+// ---- Sirkulasi paru ----
+addVessel([[0.4,0.3,0.25],[-0.5,0.95,0.4],[-1.5,1.25,0.35],[-2.15,1.35,0.15],[-2.28,1.42,-0.08]], 'deoxy'); // masuk paru kiri
+addVessel([[0.4,0.3,-0.25],[ 0.5,0.95,0.4],[ 1.5,1.25,0.35],[ 2.15,1.35,0.15],[ 2.28,1.42,-0.08]], 'deoxy'); // masuk paru kanan
+addVessel([[-2.1,1.0,0.5],[-1.3,0.85,0.6],[-0.5,0.7,0.5],[0.15,0.5,0.3],[0.08,0.35,-0.12]], 'oxy');   // kembali dari paru kiri
+addVessel([[ 2.1,1.0,0.5],[ 1.3,0.85,0.6],[ 0.5,0.7,0.5],[0.15,0.5,0.3],[0.08,0.35,-0.12]], 'oxy');    // kembali dari paru kanan
+// ---- Ke otak ----
+addVessel([[0.1,0.55,0.05],[0.12,1.15,0.1],[0.55,1.75,0.15],[0.55,2.7,0.1],[0.1,3.95,-0.05],[0,4.52,-0.1]], 'oxy');
+addVessel([[0,4.52,-0.05],[0.3,3.9,0.15],[0.95,2.55,0.35],[0.95,1.65,0.4],[0.35,1.0,0.35],[-0.25,0.5,0.2]], 'deoxy');
+// ---- Ke bawah (ke organ bawah: hati, ginjal) ----
+addVessel([[0.1,-0.5,0.1],[0.35,-1.5,0.2],[0.45,-2.5,0.25],[0.35,-3.1,0.35],[0.38,-3.8,0.2]], 'oxy'); // ke hati kanan
+addVessel([[0.9,-3.35,0.3],[1.3,-4.2,0.25],[1.35,-5.0,0.15],[1.32,-5.2,0],[1.38,-5.45,-0.1]], 'oxy');  // ke ginjal kanan
+addVessel([[-0.6,-3.35,0.3],[-1.2,-4.2,0.25],[-1.3,-5.0,0.15],[-1.32,-5.2,0],[-1.38,-5.45,-0.1]], 'oxy');// ke ginjal kiri
+addVessel([[1.55,-5.1,0.2],[1.9,-4.0,0.25],[1.55,-2.5,0.3],[0.9,-1.2,0.25],[0.35,-0.45,0.15],[0.25,0.28,0.2]], 'deoxy'); // ke SVC/paru kiri
+addVessel([[-1.55,-5.1,0.2],[-1.9,-4.0,0.25],[-1.55,-2.5,0.3],[-0.9,-1.2,0.25],[-0.35,-0.45,0.15],[-0.25,0.28,0.2]], 'deoxy'); // ke SVC/paru kanan
+addVessel([[-0.3,-3.3,-0.3],[-0.65,-2.3,-0.3],[-0.5,-1.2,-0.25],[-0.2,-0.5,-0.1],[-0.12,0.25,0.15]], 'deoxy');   // hati→vena kava inferior
+// ---- Pembuluh besar jantung (disambung ke jalur eksisting) ----
+// aorta: katup → arkus → descenden posterior (oxy), masuk hati
+addVessel([[0.1,0.55,0.2],[0.22,1.05,0.23],[0.15,1.45,0.22],[-0.25,1.55,0.18],[-0.45,1.1,0.0],[-0.45,0.45,-0.25],[-0.35,-0.3,-0.32],[-0.25,-1.0,-0.25],[-0.18,-1.8,-0.22]], 'oxy');
+// trunkus pulmonalis → cabang kanan (ujung = start jalur paru kanan, deoxy)
+addVessel([[0.2,0.22,0.28],[0.38,0.5,0.3],[0.4,0.68,0.22],[0.48,0.58,0.02],[0.42,0.35,-0.22],[0.4,0.3,-0.25],[0.45,0.18,0.08]], 'deoxy');
+// trunkus pulmonalis → cabang kiri (ujung = start jalur paru kiri, deoxy)
+addVessel([[0.2,0.22,0.28],[0.38,0.5,0.3],[0.4,0.68,0.22],[0.22,0.55,0.28],[0.4,0.4,0.25],[0.4,0.3,0.25],[0.45,0.18,0.08]], 'deoxy');
+
+/* ================================================================
+   KONTROL PANEL
+   ================================================================ */
+document.getElementById('speedSlider').oninput = e => {
+  flowSpeedMul = parseFloat(e.target.value);
+  document.getElementById('speedVal').textContent = flowSpeedMul.toFixed(1)+'×';
+};
+document.getElementById('densitySlider').oninput = e => {
+  densityMul = parseFloat(e.target.value);
+  document.getElementById('densityVal').textContent = densityMul.toFixed(1)+'×';
+  for(const f of flows){
+    const visible = Math.max(4, Math.round(f.cellCount * densityMul/2));
+    f.cells.geometry.setDrawRange(0, visible);
+    f.trail.geometry.setDrawRange(0, visible*f.trailLen);
+    f.halo.geometry.setDrawRange(0, visible);
+  }
+};
+document.getElementById('trailsChk').onchange = e => { showTrails = e.target.checked; f_trailVisibility(); };
+document.getElementById('flowLineChk').onchange = e => { showFlowLines = e.target.checked; f_lineVisibility(); };
+function f_trailVisibility(){ flows.forEach(f=>{ f.trail.visible = showTrails; }); }
+function f_lineVisibility(){ flows.forEach(f=>{ if(f.flowLine) f.flowLine.visible = showFlowLines; }); }
+
+/* ================================================================
+   ANIMASI
+   ================================================================ */
+const clock = new THREE.Clock();
+const tmpV = new THREE.Vector3();
+const tmpV2 = new THREE.Vector3();
+
+function animate(){
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const t = clock.elapsedTime;
+
+  // detak jantung lub-dub → kecepatan darah ikut berdenyut
+  const beat = Math.max(0, Math.sin(t*7.5));
+  const pulse = 1 + 1.3*Math.pow(beat,3); // darah menyembur saat systole
+
+  const beat3 = Math.pow(beat,3);
+  // ventrikel: pompa kuat + puntiran systole; atrium: kecil, fase mendahului; pembuluh: statis
+  const sv = 1 + 0.085*beat3 + 0.03*Math.max(0, Math.sin(t*7.5-0.7));
+  ventricleGrp.children.forEach(m=>{ m.scale.copy(m.userData.baseScale).multiplyScalar(sv); });
+  ventricleGrp.rotation.y = 0.06*beat3;
+  const sa = 1 + 0.035*Math.max(0, Math.sin(t*7.5-2.2));
+  atriumGrp.children.forEach(m=>{ m.scale.copy(m.userData.baseScale).multiplyScalar(sa); });
+  heartLight.position.set(0.1, 0, 1.6);
+  heartLight.intensity = 0.5 + Math.pow(beat,3)*0.9;
+
+  for(const f of flows){
+    const spd = f.baseSpeed * flowSpeedMul * pulse;
+    const cp = f.cells.geometry.attributes.position;
+    const tp = f.trail.geometry.attributes.position;
+    const hp = f.halo.geometry.attributes.position;
+    const nVis = Math.max(4, Math.round(f.cellCount*densityMul/2));
+    const trailDt = 0.04 / Math.max(1, f.vesselLen || 1); // ekor konsisten antar panjang pembuluh
+
+    for(let i=0;i<nVis;i++){
+      f.u[i] = (f.u[i] + spd * dt) % 1;
+      const u0 = f.u[i];
+      f.curve.getPointAt(u0, tmpV);
+      cp.setXYZ(i, tmpV.x, tmpV.y, tmpV.z);
+      hp.setXYZ(i, tmpV.x, tmpV.y, tmpV.z);
+      // ekor: beberapa titik di belakang sel (arah berlawanan aliran)
+      for(let k=0;k<f.trailLen;k++){
+        const ut = u0 - (k+1)*trailDt;
+        f.curve.getPointAt(ut<0? ut+1 : ut, tmpV);
+        tp.setXYZ(i*f.trailLen+k, tmpV.x, tmpV.y, tmpV.z);
+      }
+    }
+    cp.needsUpdate = true; tp.needsUpdate = true; hp.needsUpdate = true;
+
+    // garis aliran di pembuluh bergerak searah darah (delta-time: halus, sinkron sel)
+    f.flowTex.offset.x -= spd * dt * 1.5;
+
+    // gelombang denyut (pulse wave) menjalar sepanjang pembuluh
+    f.ringU = (f.ringU + spd * dt * 0.5) % 1;
+    const ringN = f.rings.length;
+    for(let i=0;i<ringN;i++){
+      const d = Math.abs(i/ringN - f.ringU);
+      const wave = Math.max(0, 1 - d*14);
+      const m = f.rings[i];
+      if(wave <= 0.02){ m.visible = false; m.material.opacity = 0; continue; }
+      f.curve.getPointAt(i/ringN, tmpV);
+      m.position.copy(tmpV);
+      // orientasi cincin tegak lurus pembuluh (tanpa alokasi per-frame)
+      const tangent = f.curve.getTangentAt(Math.min(0.999, i/ringN));
+      m.lookAt(tmpV2.copy(tmpV).add(tangent));
+      m.material.opacity = wave * 0.55 * flowSpeedMul;
+      m.visible = true;
+    }
+  }
+
+  // pernapasan
+  const br = 1 + 0.045*Math.sin(t*1.8);
+  lungL.scale.setScalar(br); lungR.scale.setScalar(br);
+  lungL.position.y = lungR.position.y = 1.25 + 0.05*Math.sin(t*1.8);
+
+  // ambien partikel oksigen: floating halus di sekitar paru & aorta
+  if(showMotes){
+    oxyMotes.forEach(m=>{
+      const u=m.userData;
+      m.position.y += Math.sin(t*u.phase)*u.vy;
+      m.position.x += Math.cos(t+u.phase)*u.driftSpeed;
+      m.position.z += Math.sin(t*0.7+u.phase)*u.driftSpeed;
+    });
+  }
+
+  // denyut lembut otak (memuai di tempat via skala dasar tiap mesh) & hati
+  const brainPulse = 1 + 0.015*Math.sin(t*2.5);
+  brainGrp.children.forEach(m=>{ m.scale.copy(m.userData.baseScale).multiplyScalar(brainPulse); });
+  liver.scale.copy(liver.userData.baseScale).multiplyScalar(1+0.012*Math.sin(t*2.5));
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+setInterval(()=>{
+  // Kalkulasi BPM berdasarkan frekuensi detak jantung (beat freq = t*7.5 rad/s ≈ 75 BPM base)
+  const bpm = Math.round(60 * 1.25); // 75 BPM constant, lebih akurat dari animasi
+  document.getElementById('bpmText').textContent = '❤ JANTUNG · '+bpm+' BPM';
+}, 3000);
+
+const captions = [
+  'Hirup! <em>Oksigen masuk</em> dari udara',
+  'Oksigen <em>diambil sel darah</em> di paru-paru',
+  'Jantung <em>memompa</em> — darah menyembur!',
+  'Oksigen <em>diantar hingga ke otak</em>',
+  'Darah kembali membawa <em>karbon dioksida</em>',
+  'Darah <em>disaring ginjal</em> & diperkaya hati'
+];
+const capEl = document.getElementById('caption');
+const capText = document.getElementById('capText');
+const capDots = document.getElementById('capDots');
+capDots.innerHTML = captions.map((_,k)=>'<span class="cdot'+(k===0?' on':'')+'"></span>').join('');
+function capShow(k){
+  capText.innerHTML = captions[k % captions.length];
+  capDots.querySelectorAll('.cdot').forEach((d,j)=> d.classList.toggle('on', j===(k % captions.length)));
+}
+let ci = 1, capToken = 0;
+capShow(0);
+requestAnimationFrame(()=> capEl.classList.remove('fade'));
+setInterval(()=>{
+  const my = ++capToken;
+  capEl.classList.add('fade');
+  setTimeout(()=>{
+    if(my !== capToken) return; // abaikan tick basi (tab ter-throttle)
+    capShow(ci); ci++;
+    capEl.classList.remove('fade');
+  }, 500);
+}, 2800);
+
+addEventListener('resize', ()=>{
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,403 @@
+/* ==========================================================================
+   Organ3DModal.css — Fullscreen Edge-to-Edge 3D Interactive Theater
+   Theme: Casual Sci-Fi Dark Glass matching METABODY Game UI
+   Optimized for IFP 65"+ Multi-Touch Displays & Student Tablets
+   ========================================================================== */
+
+.organ-3d-fullscreen-theater {
+  position: fixed;
+  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #030712;
+  overflow: hidden;
+  user-select: none;
+  z-index: 9999999; /* Di atas seluruh modal game & HUD */
+  animation: organ3dTheaterFadeIn 0.25s ease-out forwards;
+}
+
+@keyframes organ3dTheaterFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   1. LAYER KANVAS 3D SKETCHFAB SELAYAR PENUH
+   -------------------------------------------------------------------------- */
+.organ-3d-fullscreen-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #030712;
+  z-index: 1;
+}
+
+/* --------------------------------------------------------------------------
+   2. TOPBAR MENGAMBANG (FLOATING GLASS HEADER)
+   -------------------------------------------------------------------------- */
+.organ-3d-floating-topbar {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  z-index: 100;
+  pointer-events: none; /* Biarkan area transparan bisa di-klik ke model 3D */
+}
+
+.organ-3d-floating-topbar > * {
+  pointer-events: auto; /* Aktifkan kembali klik pada tombol & panel */
+}
+
+/* Organ Info Badge di Kiri */
+.organ-3d-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 8px 20px 8px 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+}
+
+.organ-3d-topbar-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.organ-3d-topbar-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.organ-3d-topbar-system {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #38BDF8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.organ-3d-topbar-name {
+  font-family: var(--font-display, 'Fredoka', 'Outfit', sans-serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+}
+
+/* Navigasi Organ Pills di Tengah */
+.organ-3d-floating-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 6px 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+  overflow-x: auto;
+  max-width: 55vw;
+}
+
+.organ-3d-floating-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.organ-3d-nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 6px 14px;
+  color: #94A3B8;
+  font-family: var(--font-display, 'Fredoka', 'Outfit', sans-serif);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.organ-3d-nav-pill:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+}
+
+.organ-3d-nav-pill.is-selected {
+  background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%);
+  color: #FFFFFF;
+  border-color: #38BDF8;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.5);
+}
+
+.organ-3d-pill-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.organ-3d-pill-label {
+  letter-spacing: 0.2px;
+}
+
+/* Tombol Aksi di Kanan */
+.organ-3d-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.organ-3d-toggle-info-btn {
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 8px 16px;
+  color: #CBD5E1;
+  font-family: var(--font-display, 'Fredoka', 'Outfit', sans-serif);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.organ-3d-toggle-info-btn:hover {
+  background: rgba(30, 41, 59, 0.95);
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.organ-3d-toggle-info-btn.is-active {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: #38BDF8;
+  color: #38BDF8;
+}
+
+.organ-3d-close-btn {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65) !important;
+  font-family: var(--font-display, 'Fredoka', 'Outfit', sans-serif);
+  font-weight: 800;
+}
+
+.organ-3d-btn-arrow {
+  font-size: 1.15rem;
+  margin-left: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   3. HUD INFORMASI ANATOMI MENGAMBANG (FLOATING GLASS SIDEBAR)
+   -------------------------------------------------------------------------- */
+.organ-3d-floating-info-card {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  width: 380px;
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 120px);
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
+  border-radius: 22px;
+  padding: 16px 18px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  animation: organ3dSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes organ3dSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.organ-3d-floating-info-card::-webkit-scrollbar {
+  width: 4px;
+}
+.organ-3d-floating-info-card::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 99px;
+}
+
+.organ-3d-info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+}
+
+.organ-3d-info-close-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  color: #94A3B8;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.organ-3d-info-close-btn:hover {
+  background: rgba(239, 68, 68, 0.3);
+  color: #FFFFFF;
+  border-color: #EF4444;
+}
+
+/* Hotspots Chips */
+.organ-3d-info-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.organ-3d-chip {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  color: #CBD5E1;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: var(--font-display, 'Fredoka', 'Outfit', sans-serif);
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.organ-3d-chip:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+}
+
+.organ-3d-chip.is-active {
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  border-color: #60A5FA;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.45);
+}
+
+/* Feature Detail Box */
+.organ-3d-selected-feature {
+  background: rgba(10, 15, 29, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.organ-3d-feature-headline {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.organ-3d-feature-pin {
+  font-size: 1rem;
+}
+
+.organ-3d-feature-title {
+  font-family: var(--font-display, 'Fredoka', 'Outfit', sans-serif);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #FDE68A;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.organ-3d-feature-latin {
+  font-size: 0.72rem;
+  font-style: italic;
+  color: #94A3B8;
+  display: block;
+}
+
+.organ-3d-feature-text {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #E2E8F0;
+  margin: 0;
+}
+
+/* Fun Fact Box */
+.organ-3d-funfact-box {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 12px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  color: #BAE6FD;
+}
+
+.organ-3d-funfact-box strong {
+  color: #38BDF8;
+  display: block;
+}
+
+.organ-3d-funfact-box p {
+  margin: 2px 0 0;
+}
+
+/* --------------------------------------------------------------------------
+   RESPONSIVE LAYOUT (IFP vs TABLETS / PORTABLE)
+   -------------------------------------------------------------------------- */
+@media (max-width: 960px) {
+  .organ-3d-floating-topbar {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .organ-3d-topbar-brand {
+    padding: 6px 14px;
+  }
+  .organ-3d-floating-nav {
+    order: 3;
+    max-width: 100%;
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .organ-3d-floating-info-card {
+    bottom: 12px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-height: 40vh;
+  }
+}

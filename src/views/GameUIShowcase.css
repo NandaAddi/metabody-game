@@ -1,0 +1,104 @@
+/* ==========================================================================
+   GAME UI SHOWCASE VIEW STYLES
+   Direct 1:1 Reference Art Comparison & Interactive Component Tester
+   ========================================================================== */
+
+.showcase-viewport {
+  width: 100vw;
+  height: 100vh;
+  overflow-y: auto;
+  background: radial-gradient(circle at center, #1E293B 0%, #0F172A 70%, #080C15 100%);
+  color: #F8FAFC;
+  padding: 40px 24px 80px;
+  font-family: var(--font-body, 'Quicksand', sans-serif);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.showcase-header {
+  max-width: 860px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: 16px;
+}
+
+.showcase-title-box h1 {
+  font-family: var(--font-display, 'Fredoka', sans-serif);
+  font-size: 2.2rem;
+  background: linear-gradient(180deg, #FFFFFF 0%, #94A3B8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 4px;
+}
+
+.showcase-subtitle {
+  color: #94A3B8;
+  font-size: 0.95rem;
+}
+
+.showcase-section {
+  max-width: 860px;
+  width: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 28px;
+  margin-bottom: 28px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+}
+
+.showcase-section-title {
+  font-family: var(--font-display, 'Fredoka', sans-serif);
+  font-size: 1.35rem;
+  color: #38BDF8;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.showcase-section-desc {
+  color: #94A3B8;
+  font-size: 0.9rem;
+  margin-bottom: 24px;
+}
+
+/* 3x3 Reference Comparison Grid */
+.showcase-ref-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.showcase-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 80px;
+  align-items: center;
+  gap: 24px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 16px 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.showcase-row-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  grid-column: 1 / -1;
+  margin-bottom: -12px;
+}
+
+/* Modal and Dialog Test Playground */
+.showcase-playground {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}

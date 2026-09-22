@@ -1,0 +1,194 @@
+.sandbox-viewport {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 40%, #0F2042 0%, #080F1E 70%, #030712 100%);
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+}
+
+.sandbox-ambient-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(56, 189, 248, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+/* Header Lab BioHUD */
+.sandbox-header {
+  width: 100%;
+  padding: 10px 24px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 20px;
+  z-index: 30;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 2px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Main Laboratory Stage */
+.sandbox-main-stage {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  position: relative;
+  overflow: hidden;
+  padding: 10px 24px 8px;
+  gap: 20px;
+}
+
+.sandbox-avatar-area {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Right Science Console Dock (Frameless Glassmorphism & Cyan Ambient Glow) */
+.sandbox-console-dock {
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: none;
+  outline: none;
+  border-radius: 20px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), inset 0 1px 2px rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-height: calc(100vh - 200px);
+}
+
+.sandbox-console-dock::-webkit-scrollbar {
+  width: 6px;
+}
+.sandbox-console-dock::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.3);
+  border-radius: 4px;
+}
+
+.sandbox-section-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: #38BDF8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Preset Cards Grid */
+.sandbox-presets-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.sandbox-preset-btn {
+  background: rgba(30, 41, 59, 0.7);
+  border: none;
+  outline: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 8px 10px;
+  color: #F8FAFC;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sandbox-preset-btn:hover {
+  background: rgba(51, 65, 85, 0.85);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.sandbox-preset-btn.active {
+  background: rgba(14, 165, 233, 0.25);
+  border: 1px solid rgba(14, 165, 233, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* Sliders */
+.sandbox-slider-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(30, 41, 59, 0.4);
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: none;
+  outline: none;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08);
+}
+
+.sandbox-slider-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sandbox-slider-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: #CBD5E1;
+  font-weight: 600;
+}
+
+.sandbox-range-input {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 4px;
+  background: #334155;
+  outline: none;
+}
+
+.sandbox-range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #38BDF8;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+  border: 2px solid #FFF;
+}
+
+/* Biocausal Card */
+.sandbox-biocausal-card {
+  background: rgba(15, 23, 42, 0.95);
+  border: none;
+  outline: none;
+  box-shadow: inset 4px 0 0 #38BDF8, 0 8px 24px rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #E2E8F0;
+}
+
+/* Bottom Controls */
+.sandbox-bottom-controls {
+  z-index: 20;
+  padding: 0 24px 10px;
+}

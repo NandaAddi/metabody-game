@@ -1,0 +1,63 @@
+/* ==========================================================================
+   GAME ASPECT SHELL (16:9 LOCKED RATIO)
+   Mengunci Rasio Game Presisi 16:9 Seperti Video Sinematik
+   ========================================================================== */
+
+.game-aspect-shell {
+  width: 100vw;
+  height: 100vh;
+  background-color: #030712;
+  background-image: 
+    radial-gradient(circle at center, #0F172A 0%, #030712 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+}
+
+/* Bingkai Kanvas Utama Terkunci Rasio 16:9 */
+.game-aspect-frame {
+  width: min(100vw, calc(100vh * (16 / 9)));
+  height: min(100vh, calc(100vw * (9 / 16)));
+  aspect-ratio: 16 / 9;
+  position: relative;
+  overflow: hidden;
+  background-color: #060B14;
+  box-shadow: 
+    0 0 60px rgba(0, 0, 0, 0.95),
+    inset 0 0 1px rgba(255, 255, 255, 0.1);
+  display: flex;
+}
+
+/* Pastikan elemen game di dalamnya mengisi 100% dari frame 16:9 */
+.game-aspect-frame > * {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  position: relative;
+}
+
+/* Kunci semua overlay, modal, dan dialog agar tetap di dalam bingkai 16:9 */
+.game-aspect-frame .arcade-title-viewport,
+.game-aspect-frame .bridging-theater-viewport,
+.game-aspect-frame .arena-viewport,
+.game-aspect-frame .sandbox-viewport,
+.game-aspect-frame .character-dialog-backdrop,
+.game-aspect-frame .tutorial-spotlight-backdrop {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Modal Game UI juga berlabuh di dalam bingkai 16:9 */
+.game-aspect-frame .game-modal-backdrop {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}

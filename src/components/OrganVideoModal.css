@@ -1,0 +1,115 @@
+/* ==========================================================================
+   ORGAN VIDEO MODAL - FULLSCREEN THEATER (CLEAN & NO COLUMNS)
+   Hanya Video Layar Penuh & Tombol Skip Berbasis Game UI Design System
+   Z-Index tertinggi mutlak agar selalu di atas seluruh modal, HUD, dan dialog game
+   ========================================================================== */
+
+.organ-video-fullscreen-theater {
+  position: fixed;
+  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000000;
+  overflow: hidden;
+  user-select: none;
+  z-index: 9999999; /* Tertinggi mutlak, di atas semua modal game */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: videoTheaterFadeIn 0.25s ease-out forwards;
+}
+
+@keyframes videoTheaterFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Tombol Skip Mengambang di Pojok Kanan Atas
+   -------------------------------------------------------------------------- */
+.organ-video-skip-floating {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  z-index: 10000000; /* Di atas video player */
+  animation: fadeInDown 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.85));
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.organ-video-skip-btn {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+  font-family: var(--font-display, "Outfit", sans-serif);
+  font-weight: 800;
+}
+
+.organ-video-btn-arrow {
+  font-size: 1.25rem;
+  margin-left: 4px;
+  transition: transform 0.2s ease;
+}
+
+.organ-video-skip-btn:hover .organ-video-btn-arrow {
+  transform: translateX(4px);
+}
+
+/* --------------------------------------------------------------------------
+   Kontainer & Elemen Video Layar Penuh
+   -------------------------------------------------------------------------- */
+.organ-video-screen-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #000000;
+}
+
+.organ-video-player-fullscreen {
+  width: 100vw;
+  height: 100vh;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  background-color: #000000;
+  display: block;
+}
+
+/* --------------------------------------------------------------------------
+   Overlay Putar Video jika browser membatasi autoplay bersuara
+   -------------------------------------------------------------------------- */
+.organ-video-gesture-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  z-index: 10000001;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .organ-video-skip-floating {
+    top: 14px;
+    right: 14px;
+  }
+}

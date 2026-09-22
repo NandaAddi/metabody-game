@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Di Dalam Nefron — Filtrasi Ginjal Interaktif</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:'Manrope',sans-serif;color:#12293d;
+    background:linear-gradient(168deg,#ffffff 0%,#f4f9fd 42%,#e2eefa 100%);
+  }
+  #scene{position:fixed;inset:0;display:block;cursor:grab}
+  #scene:active{cursor:grabbing}
+  #wires{position:fixed;inset:0;pointer-events:none;z-index:5}
+  #labels{position:fixed;inset:0;pointer-events:none;z-index:6}
+
+  /* ---- floating model labels ---- */
+  .pill{
+    position:absolute;left:0;top:0;opacity:0;
+    display:flex;align-items:center;gap:6px;
+    background:rgba(255,255,255,.9);border:1px solid rgba(18,41,61,.14);
+    border-radius:999px;padding:5px 11px 5px 8px;
+    font-size:11.5px;font-weight:700;color:#16374f;white-space:nowrap;
+    box-shadow:0 4px 14px rgba(30,70,110,.12);
+    pointer-events:auto;cursor:pointer;backdrop-filter:blur(6px);
+    transition:opacity .25s linear,border-color .2s,box-shadow .2s;
+  }
+  .pill:hover{border-color:#e0483f;box-shadow:0 6px 18px rgba(224,72,63,.18)}
+  .pill .ldot{width:8px;height:8px;border-radius:50%;flex:none}
+  .pill.ghost{
+    background:transparent;border:none;box-shadow:none;pointer-events:none;cursor:default;
+    color:rgba(64,96,124,.62);font-size:10px;font-weight:800;letter-spacing:.16em;padding:2px 4px;
+  }
+
+  /* ---- header ---- */
+  #hdr{position:fixed;top:26px;left:30px;z-index:10;max-width:420px;user-select:none}
+  .eyebrow{display:flex;align-items:center;gap:8px;font-size:10.5px;font-weight:800;letter-spacing:.16em;color:#6d8aa2;text-transform:uppercase}
+  .eyebrow i{width:7px;height:7px;border-radius:50%;background:#e0483f;box-shadow:0 0 0 3px rgba(224,72,63,.14)}
+  h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(30px,3.6vw,42px);line-height:1.05;margin-top:10px;letter-spacing:-0.01em}
+  h1 em{font-style:italic;position:relative;white-space:nowrap}
+  h1 em svg{position:absolute;left:0;bottom:-8px;width:100%;height:8px}
+  .sub{margin-top:11px;font-size:13.5px;line-height:1.55;color:#4c6a83;max-width:345px}
+  .hint{margin-top:10px;font-size:11.5px;color:#8aa2b5;display:flex}
+  .hint span:not(:last-child)::after{content:'·';margin:0 12px;color:#c3d4e0}
+
+  /* ---- top-right controls ---- */
+  #ctr{position:fixed;top:26px;right:28px;z-index:12;display:flex;gap:8px}
+  .cbtn{
+    width:40px;height:40px;border-radius:50%;border:1px solid rgba(18,41,61,.12);
+    background:rgba(255,255,255,.82);backdrop-filter:blur(10px);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;color:#28506f;
+    box-shadow:0 6px 16px rgba(30,70,110,.10);transition:.2s;position:relative;
+    font-family:'Manrope';font-weight:800;font-size:12px;
+  }
+  .cbtn:hover{background:#fff;transform:translateY(-2px);color:#e0483f}
+  .cbtn.off{color:#aec4d4}
+  .cbtn svg{width:17px;height:17px}
+  .cbtn::after{
+    content:attr(data-tip);position:absolute;top:calc(100% + 8px);left:50%;
+    transform:translateX(-50%) translateY(-4px);background:#123049;color:#fff;
+    font-size:10.5px;font-weight:700;padding:5px 9px;border-radius:7px;white-space:nowrap;
+    opacity:0;pointer-events:none;transition:.18s;
+  }
+  .cbtn:hover::after{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ---- legend ---- */
+  #legend{
+    position:fixed;left:30px;bottom:30px;z-index:10;width:264px;
+    background:rgba(255,255,255,.72);backdrop-filter:blur(14px) saturate(1.3);
+    border:1px solid rgba(18,41,61,.09);border-radius:16px;padding:14px 16px 12px;
+    box-shadow:0 14px 34px rgba(30,70,110,.10);
+  }
+  #legend h4{font-size:10px;letter-spacing:.15em;color:#7b93a7;font-weight:800;margin-bottom:8px}
+  .lrow{display:flex;align-items:center;gap:9px;padding:4.5px 6px;margin:0 -6px;border-radius:9px;font-size:12px;color:#2a4a64;cursor:pointer;transition:background .15s}
+  .lrow:hover{background:rgba(18,60,95,.06)}
+  .lrow.passive{cursor:default}.lrow.passive:hover{background:none}
+  .lrow .sw{width:13px;height:13px;border-radius:50%;flex:none;box-shadow:inset 0 -2px 3px rgba(0,0,0,.14)}
+  .lrow b{font-weight:800;color:#16374f}
+  .lrow span{color:#7b93a7;font-size:11px;margin-left:auto;text-align:right}
+  .lrow.active{background:rgba(224,72,63,.09);outline:1px solid rgba(224,72,63,.25)}
+  .lhint{margin-top:8px;font-size:10.5px;color:#9db2c2}
+
+  /* ---- stage navigator ---- */
+  #stages{
+    position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:11;
+    display:flex;align-items:center;gap:3px;padding:5px;border-radius:999px;
+    background:rgba(255,255,255,.78);backdrop-filter:blur(14px) saturate(1.3);
+    border:1px solid rgba(18,41,61,.09);box-shadow:0 14px 34px rgba(30,70,110,.12);
+    max-width:calc(100vw - 20px);overflow-x:auto;-webkit-overflow-scrolling:touch;
+  }
+  .sbtn{
+    display:flex;align-items:center;gap:7px;border:none;background:transparent;
+    padding:8px 14px;border-radius:999px;font-family:'Manrope';font-size:12.5px;font-weight:700;
+    color:#52708a;cursor:pointer;transition:.2s;white-space:nowrap;
+  }
+  .sbtn .n{width:18px;height:18px;border-radius:50%;background:rgba(18,60,95,.09);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#52708a;transition:.2s}
+  .sbtn:hover{color:#12293d}
+  .sbtn.active{background:#14344e;color:#fff}
+  .sbtn.active .n{background:rgba(255,255,255,.16);color:#fff}
+
+  /* ---- info card ---- */
+  #card{
+    position:fixed;right:28px;top:50%;z-index:11;width:306px;
+    background:rgba(255,255,255,.84);backdrop-filter:blur(16px) saturate(1.3);
+    border:1px solid rgba(18,41,61,.1);border-radius:18px;padding:20px 20px 18px;
+    box-shadow:0 22px 50px rgba(30,70,110,.16);
+    transform:translateY(-50%) translateX(26px);opacity:0;pointer-events:none;
+    transition:.35s cubic-bezier(.2,.7,.2,1);
+  }
+  #card.on{transform:translateY(-50%) translateX(0);opacity:1;pointer-events:auto}
+  #card .kick{font-size:10px;font-weight:800;letter-spacing:.14em;color:#e0483f}
+  #card h3{font-family:'Fraunces',serif;font-size:21px;font-weight:600;color:#12293d;margin:7px 0 8px;line-height:1.15}
+  #card p{font-size:12.8px;line-height:1.62;color:#42607a}
+  #card .fact{
+    margin-top:12px;display:flex;gap:9px;align-items:flex-start;
+    background:rgba(18,140,160,.07);border:1px solid rgba(18,140,160,.16);border-radius:11px;
+    padding:9px 11px;font-size:11.8px;line-height:1.5;color:#0f6d7d;font-weight:600;
+  }
+  #card .fact svg{flex:none;width:14px;height:14px;margin-top:2px}
+  #cardClose{
+    position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;border:none;
+    background:rgba(18,60,95,.07);color:#52708a;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  }
+  #cardClose:hover{background:rgba(224,72,63,.12);color:#e0483f}
+
+  /* ---- loading veil ---- */
+  #veil{
+    position:fixed;inset:0;background:#f6fafd;z-index:50;
+    display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center;transition:opacity .6s;
+  }
+  #veil.gone{opacity:0;pointer-events:none}
+  .ring{width:34px;height:34px;border-radius:50%;border:3px solid #dbe7f2;border-top-color:#e0483f;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #veil p{font-size:11px;letter-spacing:.18em;font-weight:800;color:#8aa2b5}
+
+  @media(max-width:980px){
+    #hdr{top:16px;left:16px}
+    h1{font-size:27px}
+    .sub,.hint{display:none}
+    #ctr{top:16px;right:16px}
+    #legend{left:14px;right:14px;bottom:84px;width:auto;padding:9px 12px;display:flex;gap:2px;overflow-x:auto}
+    #legend h4,.lhint{display:none}
+    .lrow{flex:none;font-size:11px;padding:5px 8px}.lrow span{display:none}
+    #stages{bottom:14px}
+    #card{left:14px;right:14px;width:auto;top:auto;bottom:136px;transform:none}
+    #card.on{transform:none}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="scene"></canvas>
+<svg id="wires"></svg>
+<div id="labels"></div>
+
+<header id="hdr">
+  <div class="eyebrow"><i></i>3D Interaktif · IPA Biologi SMP</div>
+  <h1>Di Dalam <em>Nefron<svg viewBox="0 0 100 8" preserveAspectRatio="none"><path d="M2 5.5 Q 18 1.5 36 4.5 T 70 4 T 98 3.5" fill="none" stroke="#e0483f" stroke-width="2.6" stroke-linecap="round"/></svg></em></h1>
+  <p class="sub">Cara ginjal membersihkan darahmu — ikuti plasma, lihat zat-zat baik kembali ke aliran darah, dan lihat zat sisa keluar sebagai urine.</p>
+  <div class="hint"><span>Seret untuk memutar</span><span>Gulir untuk zoom</span><span>Ketuk label pada model</span></div>
+</header>
+
+<div id="ctr">
+  <button id="btnPlay" class="cbtn" data-tip="Jeda aliran" aria-label="Jeda atau jalankan aliran">
+    <svg id="icoPause" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h3.4v14H7zM13.6 5H17v14h-3.6z"/></svg>
+    <svg id="icoPlay" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M8 5.5v13l11-6.5z"/></svg>
+  </button>
+  <button id="btnSpeed" class="cbtn" data-tip="Kecepatan aliran" aria-label="Ubah kecepatan aliran">1×</button>
+  <button id="btnLabels" class="cbtn" data-tip="Tampilkan/sembunyikan label" aria-label="Tampilkan/sembunyikan label">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/></svg>
+  </button>
+  <button id="btnReset" class="cbtn" data-tip="Atur ulang tampilan" aria-label="Atur ulang tampilan">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"/><path d="M20.5 3.5v5h-5"/></svg>
+  </button>
+  <button id="btnQuality" class="cbtn" data-tip="Kualitas grafis: Tinggi" aria-label="Ubah kualitas grafis">HQ</button>
+</div>
+
+<aside id="legend">
+  <h4>ISI CAIRAN</h4>
+  <div class="lrow" data-type="rbc"><i class="sw" style="background:radial-gradient(circle at 35% 30%, #ff7263, #d3271f)"></i><b>Sel darah merah</b><span>tetap di darah</span></div>
+  <div class="lrow passive"><i class="sw" style="background:radial-gradient(circle at 35% 30%, #f8cfc8, #edb4ab)"></i><b>Plasma darah</b><span>cairan merah muda</span></div>
+  <div class="lrow" data-type="water"><i class="sw" style="background:radial-gradient(circle at 35% 30%, #a5d8f8, #5eb2ec)"></i><b>Air</b><span>~99% kembali</span></div>
+  <div class="lrow" data-type="nutrient"><i class="sw" style="background:radial-gradient(circle at 35% 30%, #9fe0b6, #55bd7f)"></i><b>Nutrisi</b><span>semua diserap kembali</span></div>
+  <div class="lrow" data-type="ion"><i class="sw" style="background:radial-gradient(circle at 35% 30%, #a7f0f5, #35ccd8)"></i><b>Ion mineral</b><span>garam · sebagian disimpan</span></div>
+  <div class="lrow" data-type="waste"><i class="sw" style="background:radial-gradient(circle at 35% 30%, #ffc978, #ec9630)"></i><b>Limbah metabolik</b><span>menjadi urine</span></div>
+  <div class="lhint">Klik salah satu zat untuk menyorotnya pada model.</div>
+</aside>
+
+<nav id="stages">
+  <button class="sbtn active" data-stage="0"><span class="n"><svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="currentColor"/></svg></span>Gambaran Umum</button>
+  <button class="sbtn" data-stage="1"><span class="n">1</span>Filtrasi</button>
+  <button class="sbtn" data-stage="2"><span class="n">2</span>Reabsorpsi</button>
+  <button class="sbtn" data-stage="3"><span class="n">3</span>Urine keluar</button>
+</nav>
+
+<aside id="card">
+  <button id="cardClose" aria-label="Tutup">
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <div class="kick" id="cKick"></div>
+  <h3 id="cTitle"></h3>
+  <p id="cBody"></p>
+  <div class="fact" id="cFact">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5 13.8 9l6.5 1.8-6.5 1.8L12 19.1l-1.8-6.5L3.7 10.8 10.2 9z"/></svg>
+    <span></span>
+  </div>
+</aside>
+
+<div id="veil"><div class="ring"></div><p>MENYIAPKAN MODEL</p></div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+/* ================= renderer / scene / camera ================= */
+const canvas = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+/* opaque light field: EffectComposer render targets don't preserve canvas alpha,
+   so the CSS gradient would be covered in black without this */
+scene.background = new THREE.Color(0xdbe7f4);
+scene.fog = new THREE.Fog(0xdbe7f4, 75, 175);   // subtle aerial depth on a bright field
+
+const camera = new THREE.PerspectiveCamera(42, innerWidth/innerHeight, 0.1, 400);
+camera.position.set(30, 18, 72);
+
+const controls = new OrbitControls(camera, canvas);
+controls.target.set(0.4, 0.8, 0);
+controls.enableDamping = true; controls.dampingFactor = 0.06;
+controls.minDistance = 11; controls.maxDistance = 95;
+controls.maxPolarAngle = Math.PI * 0.75;
+controls.autoRotateSpeed = -0.55;
+
+/* soft studio environment — high-key, diffuse, friendly */
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+pmrem.dispose();
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0xdcedfb, 0.5));
+const key = new THREE.DirectionalLight(0xfff2e6, 1.35);  key.position.set(18, 30, 24);  scene.add(key);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+/* tight frustum on the glomerulus for crisp capsule shadows */
+key.target.position.set(-9.8, 5.8, 0); scene.add(key.target);
+key.shadow.camera.near = 30; key.shadow.camera.far = 60;
+key.shadow.camera.left = -9; key.shadow.camera.right = 9;
+key.shadow.camera.top = 9; key.shadow.camera.bottom = -9;
+key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02;
+const fill = new THREE.DirectionalLight(0xdff0ff, 0.45); fill.position.set(-24, 12, 18); scene.add(fill);
+const rim = new THREE.DirectionalLight(0xffffff, 0.5);  rim.position.set(-4, -10, -28); scene.add(rim);
+/* warm specular for wet medical tissue */
+const wet = new THREE.SpotLight(0xffe7c4, 0.7, 90, Math.PI/5, 0.5, 1.2);
+wet.position.set(6, 22, 14); wet.target.position.set(-9.8, 5.8, 0); scene.add(wet, wet.target);
+
+/* ================= geometry: the nephron ================= */
+const V = (x,y,z)=>new THREE.Vector3(x,y,z);
+const group = new THREE.Group(); scene.add(group);
+
+/* blood path: afferent arteriole → glomerular tuft weave → efferent → peritubular capillaries.
+   The knot segment (indices 4..11) weaves through the visual tuft around (-9.8, 5.8, 0)
+   so RBC particles flow inside the capillary loops instead of cutting across them. */
+const bloodPts = [
+  V(-22,8.5,3), V(-17,7.8,2.6), V(-13.5,6.9,1.6), V(-11.6,6.3,0.9),
+  V(-10.7,6.7,0.7), V(-9.4,6.7,0.9), V(-8.7,5.9,0.3), V(-9.3,5.0,-0.6),
+  V(-10.4,5.1,-0.6), V(-10.9,6.1,0.0), V(-9.9,6.6,-0.4), V(-8.9,5.8,0.4),
+  V(-9.6,5.2,0.5), V(-8.5,5.3,0.4), V(-6.6,4.6,0.9), V(-4.9,4.3,0.7),
+  V(-3.9,5.9,-0.6), V(-2.0,4.7,0.7), V(-0.7,5.9,-0.6), V(0.2,5.0,0.5),
+  V(0.9,3.6,0.6), V(1.7,1.4,-0.5), V(2.3,-1.2,0.6), V(2.9,-3.6,-0.4), V(3.5,-5.6,0.4),
+  V(4.4,-6.6,-0.4),
+  V(5.0,-4.4,0.7), V(5.4,-1.8,-0.8), V(5.7,0.8,0.9), V(6.0,3.2,-0.6),
+  V(6.8,5.6,0.8), V(8.6,7.0,-0.6), V(11,7.8,1.0), V(14.5,8.6,1.6), V(19,9.2,2)
+];
+
+/* filtrate path: Bowman's capsule → proximal tubule → loop of Henle → distal tubule → collecting duct */
+const tubulePts = [
+  V(-9.3,4.4,0.7),
+  V(-7.8,5.3,-0.35), V(-6.3,4.4,0.45), V(-4.9,5.5,-0.45), V(-3.5,4.5,0.5), V(-2.3,5.6,-0.4), V(-1.2,4.7,0.4), V(-0.4,5.3,-0.25),
+  V(0.4,4.2,0.3), V(1.2,2.0,-0.4), V(1.8,-0.5,0.5), V(2.3,-3.0,-0.3), V(2.6,-5.0,0.3),
+  V(3.0,-6.4,0), V(3.8,-6.9,-0.2),
+  V(4.4,-5.2,0.2), V(4.7,-2.6,-0.3), V(5.0,0.2,0.4), V(5.3,2.8,-0.2),
+  V(6.2,4.9,0.3), V(7.4,5.5,-0.25), V(8.6,5.0,0.2), V(9.6,5.5,-0.15),
+  V(10.4,6.3,0),
+  V(11,5.8,0), V(11,3,0), V(11,0,0), V(11,-3,0), V(11,-6,0), V(11,-8.6,0), V(11,-9.9,0)
+];
+
+const bloodCurve = new THREE.CatmullRomCurve3(bloodPts, false, 'centripetal');
+const filtCurve  = new THREE.CatmullRomCurve3(tubulePts, false, 'centripetal');
+const capCurve   = new THREE.CatmullRomCurve3(bloodPts.slice(12), false, 'centripetal');
+
+/* arc-length sampler so particles move at constant speed along each tube */
+function sampler(curve, N=700){
+  const pts = curve.getSpacedPoints(N);
+  const tans = [];
+  for(let i=0;i<=N;i++){
+    const a = pts[Math.max(0,i-1)], b = pts[Math.min(N,i+1)];
+    tans.push(b.clone().sub(a).normalize());
+  }
+  return {
+    len: curve.getLength(),
+    at(t,out){ t=Math.min(1,Math.max(0,t)); const f=t*N, i=f|0; out.copy(pts[i]).lerp(pts[Math.min(N,i+1)], f-i); return out; },
+    tan(t,out){ t=Math.min(1,Math.max(0,t)); const f=t*N, i=f|0; out.copy(tans[i]).lerp(tans[Math.min(N,i+1)], f-i).normalize(); return out; }
+  };
+}
+const bloodS = sampler(bloodCurve), filtS = sampler(filtCurve), capS = sampler(capCurve);
+
+/* ---- medical-realism helpers: procedural tissue + tapered vessels ---- */
+function makeTissueTextures(){
+  const cnv = document.createElement('canvas'); cnv.width = cnv.height = 256;
+  const x = cnv.getContext('2d');
+  x.fillStyle = '#808080'; x.fillRect(0,0,256,256);
+  const img = x.getImageData(0,0,256,256), d = img.data;
+  for(let i=0;i<d.length;i+=4){
+    const px = (i/4)%256, py = ((i/4)/256)|0;
+    const n = Math.sin(px*0.35)*Math.cos(py*0.31)*14 + Math.sin(px*0.09+py*0.13)*22 + (Math.random()-0.5)*34;
+    const v = Math.max(0, Math.min(255, 128+n));
+    d[i]=d[i+1]=d[i+2]=v; d[i+3]=255;
+  }
+  x.putImageData(img,0,0);
+  // faint elongated capillary striations
+  x.globalAlpha = 0.16; x.strokeStyle = '#3a3a3a'; x.lineWidth = 1;
+  for(let i=0;i<46;i++){
+    const y = Math.random()*256; x.beginPath(); x.moveTo(0,y);
+    x.bezierCurveTo(80,y+Math.random()*8-4, 170,y+Math.random()*8-4, 256,y);
+    x.stroke();
+  }
+  const tex = new THREE.CanvasTexture(cnv);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(3,2);
+  return tex;
+}
+const tissueTex = makeTissueTextures();
+
+/* tube with radius varying along its length: r(t), t in 0..1 */
+function taperedTube(pts, radiusFn, mat, closed=false, seg=300, radial=16){
+  const curve = new THREE.CatmullRomCurve3(pts, closed, 'centripetal');
+  const frames = curve.computeFrenetFrames(seg, closed);
+  const pos = [], norm = [], uv = [], idx = [];
+  const P = new THREE.Vector3(), N = new THREE.Vector3(), B = new THREE.Vector3(), v = new THREE.Vector3();
+  for(let i=0;i<=seg;i++){
+    const t = i/seg;
+    curve.getPointAt(closed ? t%1 : t, P);
+    N.copy(frames.normals[Math.min(seg- (closed?0:1), i)]);
+    B.copy(frames.binormals[Math.min(seg-(closed?0:1), i)]);
+    const r = radiusFn(t);
+    for(let j=0;j<=radial;j++){
+      const a = j/radial*Math.PI*2;
+      const sin = Math.sin(a), cos = Math.cos(a);
+      v.set(cos*N.x+sin*B.x, cos*N.y+sin*B.y, cos*N.z+sin*B.z);
+      norm.push(v.x, v.y, v.z);
+      pos.push(P.x+r*v.x, P.y+r*v.y, P.z+r*v.z);
+      uv.push(t*8, j/radial);
+    }
+  }
+  for(let i=0;i<seg;i++) for(let j=0;j<radial;j++){
+    const a = i*(radial+1)+j, b = a+radial+1;
+    idx.push(a,b,a+1, b,b+1,a+1);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(norm,3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv,2));
+  g.setIndex(idx);
+  const m = new THREE.Mesh(g, mat);
+  /* only the glomerular tuft casts (set explicitly there) — long tubes would
+     throw harsh detached streaks onto the catcher at glancing angles */
+  m.castShadow = false; m.receiveShadow = true; m.renderOrder = 1; group.add(m);
+  return m;
+}
+
+/* ---- renal tubule: segmented medical walls (PCT thick → thin loop → DCT) ---- */
+function tubuleWallMat(color, opacity, bump=0.55){
+  return new THREE.MeshPhysicalMaterial({
+    color, transparent:true, opacity, roughness:0.5,
+    roughnessMap:tissueTex, bumpMap:tissueTex, bumpScale:bump,
+    clearcoat:0.15, clearcoatRoughness:0.5, envMapIntensity:0.15, depthWrite:true
+  });
+}
+const tubuleWallMatSingle = tubuleWallMat(0xbb5a48, 0.9, 0.6); // one tone for the whole tubule
+/* ONE continuous tube PCT → loop → DCT (no segment joints, so no creases).
+   Radius profile mirrors the old segments: thick proximal → thin loop → thicker distal. */
+taperedTube(tubulePts.slice(0,24), t=>{
+  if(t<0.32) return 0.62-0.10*(t/0.32);         // proximal: 0.62 → 0.52
+  if(t<0.55) return 0.52-0.22*((t-0.32)/0.23);  // descending thin limb: 0.52 → 0.30
+  if(t<0.62) return 0.30-0.02*((t-0.55)/0.07);  // hairpin bend: → 0.28
+  if(t<0.88) return 0.28+0.14*((t-0.62)/0.26);  // ascending limb: → 0.42
+  return 0.42+0.08*((t-0.88)/0.12);             // distal: → 0.50
+}, tubuleWallMatSingle, false, 420, 18);
+/* brush border: darker inner lining inside the PCT (BackSide, visible through the wall) */
+{
+  const brushMat = new THREE.MeshPhysicalMaterial({
+    color:0xa34a3e, transparent:true, opacity:0.5, roughness:0.7,
+    roughnessMap:tissueTex, bumpMap:tissueTex, bumpScale:1.2,
+    side:THREE.BackSide, depthWrite:false, envMapIntensity:0.3
+  });
+  const curve = new THREE.CatmullRomCurve3(tubulePts.slice(0,9), false, 'centripetal');
+  const brush = new THREE.Mesh(new THREE.TubeGeometry(curve, 200, 0.38, 14, false), brushMat);
+  brush.renderOrder = 1; group.add(brush);
+}
+/* collecting duct: wide medullary tube with cuboidal-cell walls + darker lumen lining */
+taperedTube([V(10.3,6.6,0),V(11,5.6,0),V(11,2.5,0),V(11,-1,0),V(11,-4.5,0),V(11,-7.5,0),V(11,-9.9,0)],
+  t=>0.78+0.22*t,
+  new THREE.MeshPhysicalMaterial({ color:0xb0513f, transparent:true, opacity:0.92, roughness:0.5,
+    roughnessMap:tissueTex, bumpMap:tissueTex, bumpScale:0.9,
+    clearcoat:0.15, clearcoatRoughness:0.5, envMapIntensity:0.15, depthWrite:true }),
+  false, 180, 18);
+{
+  const ductCurve = new THREE.CatmullRomCurve3(
+    [V(10.3,6.6,0),V(11,5.6,0),V(11,2.5,0),V(11,-1,0),V(11,-4.5,0),V(11,-7.5,0),V(11,-9.9,0)], false, 'centripetal');
+  const lumen = new THREE.Mesh(
+    new THREE.TubeGeometry(ductCurve, 160, 0.52, 14, false),
+    new THREE.MeshPhysicalMaterial({ color:0x9c4f42, transparent:true, opacity:0.4, roughness:0.7,
+      roughnessMap:tissueTex, bumpMap:tissueTex, bumpScale:1.0,
+      side:THREE.BackSide, depthWrite:false, envMapIntensity:0.3 }));
+  lumen.renderOrder = 1; group.add(lumen);
+}
+/* renal papilla + minor calyx: duct tip narrows into a nub, cupped by an
+   open funnel so urine drips land inside anatomy instead of the void */
+{
+  const papMat = new THREE.MeshPhysicalMaterial({ color:0xb0513f, transparent:true, opacity:0.92,
+    roughness:0.45, roughnessMap:tissueTex, bumpMap:tissueTex, bumpScale:0.7,
+    clearcoat:0.2, envMapIntensity:0.15, depthWrite:true });
+  taperedTube([V(11,-9.5,0),V(11,-10.5,0),V(11,-11.4,0)], t=>0.85-0.5*t, papMat, false, 30, 12);
+  const calyxMat = new THREE.MeshPhysicalMaterial({ color:0xe9c2b4, transparent:true, opacity:0.5,
+    roughness:0.4, roughnessMap:tissueTex, bumpMap:tissueTex, bumpScale:0.4,
+    clearcoat:0.6, envMapIntensity:0.5, side:THREE.DoubleSide, depthWrite:false });
+  const calyx = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.75, 4.6, 24, 1, true), calyxMat);
+  calyx.position.set(11.1, -12.2, 0); calyx.renderOrder = 2; group.add(calyx);
+  const lip = new THREE.Mesh(new THREE.TorusGeometry(1.75, 0.12, 10, 28), calyxMat);
+  lip.rotation.x = Math.PI/2; lip.position.set(11.1, -14.5, 0); group.add(lip);
+}
+
+/* ---- medical vessel walls: wet flesh, micro-textured, still translucent so cells stay visible ---- */
+const afferentMat = new THREE.MeshPhysicalMaterial({
+  color:0x8a0e06, transparent:true, opacity:0.96, roughness:0.42,
+  roughnessMap:tissueTex, bumpMap:tissueTex, bumpScale:0.6,
+  clearcoat:0.15, clearcoatRoughness:0.5, envMapIntensity:0.15, depthWrite:true,
+  emissive:0x4a0500, emissiveIntensity:0.25
+});
+const efferentMat = new THREE.MeshPhysicalMaterial({
+  color:0x961c0e, transparent:true, opacity:0.94, roughness:0.45,
+  roughnessMap:tissueTex, bumpMap:tissueTex, bumpScale:0.5,
+  clearcoat:0.15, clearcoatRoughness:0.5, envMapIntensity:0.15, depthWrite:true,
+  emissive:0x4a0500, emissiveIntensity:0.25
+});
+const tuftMat = new THREE.MeshPhysicalMaterial({
+  color:0x7d0f08, transparent:true, opacity:1.0, roughness:0.42,
+  roughnessMap:tissueTex, bumpMap:tissueTex, bumpScale:0.9,
+  clearcoat:0.2, clearcoatRoughness:0.4, envMapIntensity:0.15, depthWrite:true,
+  emissive:0x420600, emissiveIntensity:0.25
+});
+
+/* afferent arteriole: thick inlet, narrows toward the tuft (real anatomy) */
+taperedTube(bloodPts.slice(0,5), t=>0.52*(1-t)+0.32*t, afferentMat, false, 100, 16);
+/* efferent + peritubular: thin outlet (starts where the tuft weave exits) */
+taperedTube(bloodPts.slice(12), t=>0.26-0.06*t, efferentMat, false, 380, 16);
+
+/* peritubular capillary plexus: 2 spiral vessels winding around PCT + loop,
+   plus vasa recta (straight capillaries paralleling the loop of Henle) */
+{
+  const plexMat = new THREE.MeshPhysicalMaterial({
+    color:0x8f1a0b, transparent:true, opacity:0.92, roughness:0.46,
+    roughnessMap:tissueTex, bumpMap:tissueTex, bumpScale:0.5,
+    clearcoat:0.15, clearcoatRoughness:0.5, envMapIntensity:0.15, depthWrite:true,
+    emissive:0x4a0500, emissiveIntensity:0.25
+  });
+  const _p = new THREE.Vector3(), _tan = new THREE.Vector3(), _n = new THREE.Vector3(), _b = new THREE.Vector3();
+  const UP = new THREE.Vector3(0,1,0);
+  function spiralAround(t0, t1, turns, phase, offset){
+    const pts = [], N = 160;
+    for(let i=0;i<=N;i++){
+      const t = t0 + (t1-t0)*i/N;
+      filtCurve.getPointAt(t, _p); filtCurve.getTangentAt(t, _tan);
+      _n.crossVectors(_tan, UP);
+      if(_n.lengthSq() < 1e-4) _n.set(1,0,0); else _n.normalize();
+      _b.crossVectors(_tan, _n).normalize();
+      const a = phase + t*turns*Math.PI*2;
+      pts.push(new THREE.Vector3().copy(_p)
+        .addScaledVector(_n, Math.cos(a)*offset)
+        .addScaledVector(_b, Math.sin(a)*offset));
+    }
+    return pts;
+  }
+  /* hug PCT + proximal loop (offset clears the 0.3–0.6 tubule wall) */
+  taperedTube(spiralAround(0.03, 0.42, 9, 0.0, 0.95), ()=>0.13, plexMat, false, 380, 10);
+  taperedTube(spiralAround(0.03, 0.42, 9, Math.PI, 0.95), ()=>0.12, plexMat, false, 380, 10);
+  /* hug ascending limb + DCT */
+  taperedTube(spiralAround(0.45, 0.72, 7, 0.6, 0.8), ()=>0.12, plexMat, false, 300, 10);
+  /* vasa recta: straight pair flanking the thin loop limbs */
+  const loopRun = tubulePts.slice(10,19);
+  const vrA = loopRun.map(p=>p.clone().add(new THREE.Vector3(0.62,0,0.3)));
+  const vrB = loopRun.map(p=>p.clone().add(new THREE.Vector3(-0.62,0,-0.3)));
+  taperedTube(vrA, ()=>0.11, plexMat, false, 180, 10);
+  taperedTube(vrB, ()=>0.11, plexMat, false, 180, 10);
+}
+
+/* glomerular tuft: 5 tangled capillary loops around G instead of one flat ring */
+const G = V(-9.8, 5.8, 0.05);
+const tuft = new THREE.Group(); tuft.position.copy(G); group.add(tuft);
+{
+  const loops = [
+    { rx:1.45, ry:1.15, rz:1.05, ph:0.0, tilt:0.5 },
+    { rx:1.25, ry:1.35, rz:0.95, ph:1.3, tilt:-0.4 },
+    { rx:1.05, ry:1.0,  rz:1.3,  ph:2.4, tilt:0.9 },
+    { rx:1.35, ry:0.9,  rz:1.1,  ph:3.6, tilt:-0.8 },
+    { rx:0.95, ry:1.2,  rz:1.0,  ph:4.7, tilt:0.2 }
+  ];
+  loops.forEach((L, li)=>{
+    const pts = [];
+    const NPT = 26;
+    for(let i=0;i<NPT;i++){
+      const a = i/NPT*Math.PI*2;
+      const wob = Math.sin(a*3+L.ph)*0.14 + Math.sin(a*5+li)*0.07;
+      pts.push(new THREE.Vector3(
+        Math.cos(a)*L.rx + wob,
+        Math.sin(a*2+L.ph)*0.35* L.ry + Math.sin(a+L.ph)*L.ry*0.55,
+        Math.sin(a)*L.rz*Math.cos(L.tilt) + Math.cos(a)*0.25 + wob*0.5
+      ));
+    }
+    const curve = new THREE.CatmullRomCurve3(pts, true);
+    const geo = new THREE.TubeGeometry(curve, 110, 0.19 - li*0.008, 10, true);
+    const mesh = new THREE.Mesh(geo, tuftMat);
+    mesh.castShadow = true; mesh.receiveShadow = true; mesh.renderOrder = 1;
+    // subtle per-loop tint so the knot reads as separate capillaries
+    mesh.material = li%2 ? tuftMat : tuftMat.clone();
+    if(li%2) mesh.material.color.offsetHSL(0.008, 0.02, 0.02);
+    mesh.rotation.x = L.tilt*0.45; mesh.rotation.y = L.ph*0.12;
+    tuft.add(mesh);
+  });
+  /* basement-membrane core the loops wrap around */
+  const core = new THREE.Mesh(
+    new THREE.SphereGeometry(0.85, 24, 18),
+    new THREE.MeshPhysicalMaterial({ color:0x8f2012, transparent:true, opacity:0.92,
+      roughness:0.5, roughnessMap:tissueTex, bumpMap:tissueTex, bumpScale:0.7,
+      clearcoat:0.2, envMapIntensity:0.15, depthWrite:true,
+      emissive:0x3a0500, emissiveIntensity:0.25 })
+  );
+  core.renderOrder = 1; tuft.add(core);
+}
+/* podocytes: small bodies studded over the tuft surface (seeded → identical every load) */
+{
+  let podSeed = 20260921;
+  const srand = ()=>{ podSeed |= 0; podSeed = podSeed + 0x6D2B79F5 | 0;
+    let t = Math.imul(podSeed ^ podSeed >>> 15, 1 | podSeed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0)/4294967296; };
+  const podGeo = new THREE.IcosahedronGeometry(0.1, 0);
+  const podMat = new THREE.MeshStandardMaterial({ color:0xd98a7a, roughness:0.75 });
+  const pod = new THREE.InstancedMesh(podGeo, podMat, 70);
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), s = new THREE.Vector3();
+  for(let i=0;i<70;i++){
+    const th = srand()*Math.PI*2, ph = Math.acos(2*srand()-1);
+    const r = 1.35 + srand()*0.45;
+    const p = new THREE.Vector3(
+      G.x + r*Math.sin(ph)*Math.cos(th),
+      G.y + r*Math.sin(ph)*Math.sin(th)*0.85,
+      G.z + r*Math.cos(ph)*0.9
+    );
+    e.set(srand()*3, srand()*3, srand()*3); q.setFromEuler(e);
+    const sc = 0.6+srand()*0.9; s.set(sc,sc*0.7,sc);
+    m4.compose(p, q, s); pod.setMatrixAt(i, m4);
+  }
+  pod.castShadow = true; pod.instanceMatrix.needsUpdate = true; group.add(pod);
+}
+
+/* Bowman's capsule — double layer: parietal shell + visceral lining, medical wet look */
+const dOpen = V(-9.3,4.4,0.7).sub(G).normalize();
+const capsuleMat = new THREE.MeshPhysicalMaterial({ color:0xf3ded2, transparent:true, opacity:0.38,
+  roughness:0.28, roughnessMap:tissueTex, bumpMap:tissueTex, bumpScale:0.35,
+  clearcoat:1, clearcoatRoughness:0.18, transmission:0.6, thickness:1.2,
+  ior:1.34, envMapIntensity:0.7, side:THREE.DoubleSide, depthWrite:false });
+const capsule = new THREE.Mesh(
+  new THREE.SphereGeometry(2.6, 48, 32, 0, Math.PI*2, 0.62, Math.PI-0.62),
+  capsuleMat
+);
+capsule.quaternion.setFromUnitVectors(V(0,1,0), dOpen);
+capsule.position.copy(G); capsule.renderOrder = 2; capsule.receiveShadow = true; group.add(capsule);
+
+/* visceral layer hugging the tuft */
+const visceral = new THREE.Mesh(
+  new THREE.SphereGeometry(2.0, 40, 28, 0, Math.PI*2, 0.7, Math.PI-0.7),
+  new THREE.MeshPhysicalMaterial({ color:0xecc9b8, transparent:true, opacity:0.22,
+    roughness:0.35, roughnessMap:tissueTex, bumpMap:tissueTex, bumpScale:0.5,
+    clearcoat:0.9, transmission:0.5, thickness:0.9, ior:1.36,
+    side:THREE.DoubleSide, depthWrite:false })
+);
+visceral.quaternion.copy(capsule.quaternion);
+visceral.position.copy(G); visceral.renderOrder = 2; group.add(visceral);
+
+/* connective-tissue ring at the vascular pole (afferent/efferent entry) */
+{
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(0.7, 0.11, 10, 28),
+    new THREE.MeshPhysicalMaterial({ color:0xd9a08e, transparent:true, opacity:0.45,
+      roughness:0.55, roughnessMap:tissueTex, bumpMap:tissueTex, bumpScale:0.5,
+      clearcoat:0.4, envMapIntensity:0.4 })
+  );
+  const entry = V(-10.6,6.6,0.6);
+  ring.position.copy(entry); ring.lookAt(G);
+  ring.castShadow = true; group.add(ring);
+}
+
+/* urinary funnel: capsule mouth → proximal tubule, no hard seam */
+const neckMat = new THREE.MeshPhysicalMaterial({ color:0xe8c0b0, transparent:true, opacity:0.38,
+  roughness:0.35, roughnessMap:tissueTex, bumpMap:tissueTex, bumpScale:0.4,
+  clearcoat:1, clearcoatRoughness:0.2, transmission:0.45, thickness:1.0, ior:1.35,
+  envMapIntensity:0.65, side:THREE.DoubleSide, depthWrite:false });
+const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.52, 1.9, 20, 4, true), neckMat);
+neck.position.copy(G).addScaledVector(dOpen, 2.6);
+neck.quaternion.setFromUnitVectors(V(0,1,0), dOpen); neck.renderOrder = 2; group.add(neck);
+{
+  const collar = new THREE.Mesh(new THREE.TorusGeometry(0.58, 0.1, 10, 24), neckMat);
+  const mouth = G.clone().addScaledVector(dOpen, 3.5);
+  collar.position.copy(mouth);
+  collar.quaternion.setFromUnitVectors(V(0,0,1), dOpen);
+  group.add(collar);
+}
+
+/* medulla: striated pyramid volume (tubules + vasa recta run vertically) + contact shadow */
+const medTex = (function(){
+  const c = document.createElement('canvas'); c.width = 256; c.height = 256;
+  const x = c.getContext('2d');
+  const g = x.createLinearGradient(0,0,0,256);
+  g.addColorStop(0,'#e8b48f'); g.addColorStop(0.55,'#f2c9a8'); g.addColorStop(1,'#e0a37f');
+  x.fillStyle = g; x.fillRect(0,0,256,256);
+  for(let i=0;i<90;i++){  // vertical striations = parallel tubules/vessels
+    const px = Math.random()*256;
+    x.strokeStyle = Math.random()<0.5 ? 'rgba(160,90,60,0.20)' : 'rgba(255,235,215,0.25)';
+    x.lineWidth = 1+Math.random()*2;
+    x.beginPath(); x.moveTo(px,0);
+    x.bezierCurveTo(px+6,85, px-6,170, px+3,256); x.stroke();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2,1);
+  return t;
+})();
+const med = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 32),
+  new THREE.MeshStandardMaterial({ map:medTex, color:0xf6cfae, transparent:true, opacity:0.3,
+    roughness:0.85, depthWrite:false, side:THREE.DoubleSide }));
+med.scale.set(12.5, 1.9, 5.2); med.position.set(2.2, -4.8, -0.6); med.renderOrder = -1; group.add(med);
+
+(function(){
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const x = c.getContext('2d');
+  const g = x.createRadialGradient(128,128,12,128,128,124);
+  g.addColorStop(0,'rgba(40,80,120,0.5)'); g.addColorStop(1,'rgba(40,80,120,0)');
+  x.fillStyle = g; x.fillRect(0,0,256,256);
+  const sh = new THREE.Mesh(new THREE.PlaneGeometry(46,17),
+    new THREE.MeshBasicMaterial({ map:new THREE.CanvasTexture(c), transparent:true, opacity:0.16, depthWrite:false }));
+  sh.rotation.x = -Math.PI/2; sh.position.y = -15.4; sh.renderOrder = -3; group.add(sh);
+  /* real shadow catcher so the tuft + capsule ground themselves */
+  const catcher = new THREE.Mesh(new THREE.PlaneGeometry(60,30),
+    new THREE.ShadowMaterial({ opacity:0.16 }));
+  catcher.rotation.x = -Math.PI/2; catcher.position.y = -15.35;
+  catcher.receiveShadow = true; catcher.renderOrder = -2; group.add(catcher);
+})();
+
+/* subtle bloom for wet speculars only — threshold keeps the white background clean */
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const isSmall = Math.min(innerWidth, innerHeight) < 700;
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(innerWidth, innerHeight), isSmall ? 0.1 : 0.18, 0.55, 0.88);
+composer.addPass(bloomPass);
+composer.addPass(new OutputPass());
+
+/* ================= flowing particles ================= */
+function pMat(hex, op, extra={}){
+  return new THREE.MeshPhysicalMaterial(Object.assign({
+    color:hex, transparent:true, opacity:op, roughness:0.4, clearcoat:0.5,
+    clearcoatRoughness:0.4, envMapIntensity:0.55, depthWrite:true
+  }, extra));
+}
+const rbcMat   = pMat(0xd8342c, 1,   { roughness:0.32, clearcoat:0.7, emissive:0xd8342c, emissiveIntensity:0.12 }); // vivid red cells
+const filtMat  = pMat(0xa9d8f6, 0.55,{ depthWrite:false });                                                          // filtrate, translucent blue
+const waterMat = pMat(0x58b8ee, 0.8);
+const nutMat   = pMat(0x63c98a, 0.9);
+const ionMat   = pMat(0x35ccd8, 0.9);
+const wasteMat = pMat(0xf2a03d, 0.9,{ flatShading:true, emissive:0xf2a03d, emissiveIntensity:0.1 });                 // faceted waste
+
+/* biconcave red-blood-cell disc (lathe profile with a dimple) */
+function rbcGeo(){
+  const p = [], N = 7;
+  for(let i=0;i<=N;i++){ const r=i/N; p.push(new THREE.Vector2(Math.max(0.02, r*0.42),  0.13*r*r)); }
+  for(let i=N-1;i>=0;i--){ const r=i/N; p.push(new THREE.Vector2(Math.max(0.02, r*0.42), -0.13*r*r)); }
+  const g = new THREE.LatheGeometry(p, 18); g.rotateX(Math.PI/2); return g;
+}
+
+const R = (a,b)=>a+Math.random()*(b-a);
+const QID = new THREE.Quaternion(), FWD = V(0,0,1);
+const P0 = V(), P1 = V(), T0 = V(), S1 = V(), M4 = new THREE.Matrix4(), Q1 = new THREE.Quaternion();
+const PV = V();
+
+function instMesh(geo, mat, n){
+  const m = new THREE.InstancedMesh(geo, mat, n);
+  m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  m.frustumCulled = false; m.renderOrder = 1; group.add(m); return m;
+}
+
+function flowSystem(geo, mat, S, count, speedRange, sizeRange, oriented){
+  const mesh = instMesh(geo, mat, count); const data = [];
+  for(let i=0;i<count;i++){
+    const p = { t:Math.random(), speed:R(...speedRange), size:R(...sizeRange) };
+    if(oriented) p.tilt = new THREE.Quaternion().setFromEuler(new THREE.Euler(R(0,6.3),R(0,6.3),R(0,6.3)));
+    data.push(p);
+  }
+  return { mesh, data, S, oriented };
+}
+function newReabs(exitFn, sr, zr, init){
+  return { mode:0, t:init?Math.random():Math.random()*0.02, speed:R(...sr), size:R(...zr),
+    exitT:exitFn(), hopDur:R(0.9,1.6), hopT:0, s:0, sSpeed:R(4.8,6.5), vAge:0, pa:V(), pb:V(), pc:V() };
+}
+function reabsSystem(geo, mat, count, speedRange, sizeRange, exitFn){
+  const mesh = instMesh(geo, mat, count); const data = [];
+  for(let i=0;i<count;i++) data.push(newReabs(exitFn, speedRange, sizeRange, true));
+  return { mesh, data, exitFn, speedRange, sizeRange };
+}
+
+function rampEnds(t, len){
+  const d = Math.min(t*len, (1-t)*len)/1.6, c = Math.min(1, d);
+  return c*c*(3-2*c);
+}
+const easeIO = t => t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;
+function bez(a,b,c,t,out){
+  const u = 1-t;
+  out.set(u*u*a.x+2*u*t*b.x+t*t*c.x, u*u*a.y+2*u*t*b.y+t*t*c.y, u*u*a.z+2*u*t*b.z+t*t*c.z);
+  return out;
+}
+
+/* simple loop-the-loop flow (blood, filtrate, waste); pulseK lets the heartbeat
+   modulate a system's speed — used for the RBC stream through the tuft */
+function updateFlow(sys, dt, pulseK=1){
+  const { mesh, data, S, oriented } = sys;
+  for(let i=0;i<data.length;i++){
+    const p = data[i];
+    p.t += p.speed*pulseK*dt/S.len; if(p.t>=1) p.t -= 1;
+    S.at(p.t, P0);
+    const s = p.size * rampEnds(p.t, S.len);
+    if(oriented){ S.tan(p.t, T0); Q1.setFromUnitVectors(FWD, T0).multiply(p.tilt); } else Q1.copy(QID);
+    M4.compose(P0, Q1, S1.set(s,s,s)); mesh.setMatrixAt(i, M4);
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+}
+
+/* reabsorption: ride the tubule → hop out into the capillary → ride the blood, fade away */
+function updateReabs(sys, dt){
+  const { mesh, data, exitFn, speedRange, sizeRange } = sys;
+  for(let i=0;i<data.length;i++){
+    const p = data[i]; let s = p.size;
+    if(p.mode === 0){
+      p.t += p.speed*dt/filtS.len;
+      if(p.exitT !== Infinity && p.t >= p.exitT && p.t < 0.985){
+        p.mode = 1; p.hopT = 0;
+        filtS.at(p.t, p.pa);
+        p.s = Math.min(0.96, Math.max(0, (p.exitT-0.02)/0.72))*0.9 + Math.random()*0.05;
+        capS.at(p.s, p.pb);
+        p.pc.copy(p.pa).lerp(p.pb, 0.5).add(P1.set(R(-0.9,0.9), R(0.6,1.4), R(-0.9,0.9)));
+      } else if(p.t >= 1){
+        p.mode = 0; p.t = 0; p.exitT = exitFn();
+      } else {
+        filtS.at(p.t, P0);
+        s = p.size * rampEnds(p.t, filtS.len);
+        M4.compose(P0, QID, S1.set(s,s,s)); mesh.setMatrixAt(i, M4); continue;
+      }
+    }
+    if(p.mode === 1){
+      p.hopT += dt/p.hopDur;
+      bez(p.pa, p.pc, p.pb, easeIO(Math.min(1, p.hopT)), P0);
+      if(p.hopT >= 1){ p.mode = 2; p.vAge = 0; }
+      M4.compose(P0, QID, S1.set(s,s,s)); mesh.setMatrixAt(i, M4); continue;
+    }
+    p.s += p.sSpeed*dt/capS.len; p.vAge += dt;
+    if(p.s >= 0.995 || p.vAge > 3.8){
+      Object.assign(p, newReabs(exitFn, speedRange, sizeRange, false)); continue;
+    }
+    capS.at(p.s, P0);
+    s = Math.max(p.size * (1 - THREE.MathUtils.smoothstep(p.vAge, 2.4, 3.6)), 0.001);
+    M4.compose(P0, QID, S1.set(s,s,s)); mesh.setMatrixAt(i, M4);
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+}
+
+const sysRBC   = flowSystem(rbcGeo(), rbcMat, bloodS, 120, [6.5,10], [0.5,0.66], true);
+const sysFilt  = flowSystem(new THREE.SphereGeometry(0.16,10,8), filtMat, filtS, 120, [2.6,3.6], [0.8,1.15], false);
+const sysWaste = flowSystem(new THREE.IcosahedronGeometry(0.17,0), wasteMat, filtS, 34, [2.1,2.9], [0.85,1.2], false);
+const exitN = ()=>R(0.05,0.2);                                  // nutrients leave early — proximal tubule
+const exitI = ()=>R(0.42,0.72);                                 // ions leave in the loop & distal tubule
+const exitW = ()=>Math.random()<0.68 ? R(0.12,0.5) : Infinity;  // most water returns, some becomes urine
+const sysNut   = reabsSystem(new THREE.CylinderGeometry(0.15,0.15,0.07,6), nutMat, 30, [2.3,3.3], [0.9,1.2],  exitN);
+const sysIon   = reabsSystem(new THREE.BoxGeometry(0.12,0.12,0.12),          ionMat, 44, [2.3,3.3], [0.85,1.15], exitI);
+const sysWater = reabsSystem(new THREE.SphereGeometry(0.12,9,7),  waterMat, 80, [2.3,3.3], [0.8,1.1],  exitW);
+
+/* filtration seep: plasma wells out of the tuft surface → drifts through
+   Bowman's space → gathers at the urinary pole → joins the filtrate stream.
+   Reuses filtMat so stage spotlighting dims it together with the filtrate. */
+const sysSeep = (function(){
+  const N = 56;
+  const mesh = instMesh(new THREE.SphereGeometry(0.11,9,7), filtMat, N);
+  const mouth = G.clone().addScaledVector(dOpen, 3.1);
+  const data = [];
+  function spawn(p, randomAge){
+    const th = Math.random()*Math.PI*2, ph = Math.acos(2*Math.random()-1);
+    const r = 1.1 + Math.random()*0.6;
+    p.sa = new THREE.Vector3(
+      G.x + r*Math.sin(ph)*Math.cos(th),
+      G.y + r*Math.sin(ph)*Math.sin(th)*0.85,
+      G.z + r*Math.cos(ph)*0.9);
+    p.ctrl = p.sa.clone().lerp(mouth, 0.55).add(new THREE.Vector3(R(-0.5,0.5), R(0.2,0.9), R(-0.5,0.5)));
+    p.dur = R(2.4,3.6); p.age = randomAge ? Math.random()*p.dur : 0;
+    p.size = R(0.7,1.05);
+  }
+  for(let i=0;i<N;i++){ const p = {}; spawn(p, true); data.push(p); }
+  return { mesh, data, mouth,
+    update(dt){
+      for(let i=0;i<N;i++){
+        const p = data[i];
+        p.age += dt;
+        if(p.age >= p.dur){ spawn(p, false); continue; }
+        const k = p.age/p.dur;
+        if(k < 0.6) bez(p.sa, p.ctrl, this.mouth, easeIO(k/0.6), P0);
+        else filtS.at((k-0.6)/0.4*0.035, P0);
+        const s = 0.13*p.size*Math.min(1, p.age*4)*Math.min(1, (p.dur-p.age)*2);
+        M4.compose(P0, QID, S1.set(s,s,s)); mesh.setMatrixAt(i, M4);
+      }
+      mesh.instanceMatrix.needsUpdate = true;
+    }};
+})();
+
+/* urine drips forming at the duct outlet */
+const dripMat = new THREE.MeshPhysicalMaterial({ color:0xf3c14f, transparent:true, opacity:0.78,
+  roughness:0.12, clearcoat:1, envMapIntensity:0.7, depthWrite:false });
+const drips = [];
+{
+  const g = new THREE.SphereGeometry(0.32, 16, 12);
+  for(let i=0;i<3;i++){
+    const m = new THREE.Mesh(g, dripMat); m.renderOrder = 4; group.add(m);
+    drips.push({ m, ph: i/3 });
+  }
+}
+function updateDrips(t){
+  for(const d of drips){
+    const l = (t/2.6 + d.ph) % 1; let y, s;
+    if(l < 0.2){ const k=l/0.2;       y=-10.35;            s=0.15+k*0.5; }
+    else if(l < 0.78){ const k=(l-0.2)/0.58; y=-10.35-k*k*4.2; s=0.65*(1-k*0.2); }
+    else { const k=(l-0.78)/0.22;    y=-14.55-k*0.8;      s=0.52*(1-k); }
+    d.m.position.set(11, y, 0);
+    d.m.scale.setScalar(Math.max(s, 0.001));
+  }
+}
+
+/* faint ambient dust for depth */
+const dustN = 90, dustPos = new Float32Array(dustN*3), dustBase = new Float32Array(dustN);
+for(let i=0;i<dustN;i++){
+  dustPos[i*3] = R(-32,32); dustPos[i*3+1] = R(-15,18); dustPos[i*3+2] = R(-20,12);
+  dustBase[i] = dustPos[i*3+1];
+}
+const dustGeo = new THREE.BufferGeometry();
+dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+/* soft round sprite so dust reads as bokeh, not confetti squares */
+const dustTex = (function(){
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const x = c.getContext('2d');
+  const g = x.createRadialGradient(32,32,2,32,32,30);
+  g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(0.5,'rgba(255,255,255,0.5)');
+  g.addColorStop(1,'rgba(255,255,255,0)');
+  x.fillStyle = g; x.fillRect(0,0,64,64);
+  return new THREE.CanvasTexture(c);
+})();
+const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
+  color:0x9fc6e8, size:0.55, map:dustTex, transparent:true, opacity:0.45,
+  depthWrite:false, sizeAttenuation:true }));
+dust.renderOrder = -2; dust.frustumCulled = false; scene.add(dust);
+function updateDust(t){
+  for(let i=0;i<dustN;i++) dustPos[i*3+1] = dustBase[i] + Math.sin(t*0.35 + i*1.7)*0.7;
+  dustGeo.attributes.position.needsUpdate = true;
+}
+
+/* ================= emphasis (stage focus & spotlighting) ================= */
+const matFor = { rbc:rbcMat, filtrate:filtMat, water:waterMat, nutrient:nutMat, ion:ionMat, waste:wasteMat };
+const emphKeys = Object.keys(matFor);
+const emphCur = { rbc:1, filtrate:1, water:1, nutrient:1, ion:1, waste:1 };
+let emphTgt = { ...emphCur };
+emphKeys.forEach(k => matFor[k].userData.base = matFor[k].opacity);
+function setEmphasis(o){
+  emphTgt = Object.assign({ rbc:.12, filtrate:.12, water:.12, nutrient:.12, ion:.12, waste:.12 }, o);
+}
+function updateEmphasis(dt){
+  const k = 1 - Math.exp(-dt*4);
+  emphKeys.forEach(key => {
+    emphCur[key] += (emphTgt[key]-emphCur[key])*k;
+    matFor[key].opacity = matFor[key].userData.base * emphCur[key];
+  });
+}
+
+/* ================= educational content ================= */
+const INFO = {
+  stages: [
+    { k:"PERJALANAN LENGKAP", t:"Setetes darah, dari awal sampai akhir",
+      b:"Ini adalah nefron — unit penyaring mikroskopis ginjal. Kamu memiliki sekitar satu juta nefron di setiap ginjal. Darah masuk melalui pembuluh merah, tekanan memeras filtrat berair keluar di dalam glomerulus, zat-zat baik diserap kembali di sepanjang tubulus, dan sisanya menetes keluar di bagian bawah sebagai urine.",
+      f:"Semua tubulus nefronmu jika disambung ujung ke ujung panjangnya sekitar 80 kilometer." },
+    { k:"TAHAP 1 · FILTRASI", t:"Darah diperas",
+      b:"Darah mengalir deras ke glomerulus — gulungan rapat kapiler yang bocor — di bawah tekanan tinggi. Air, nutrisi, ion mineral, dan limbah didorong menembus dinding kapiler menuju kapsula Bowman, menjadi filtrat. Sel darah merah dan protein besar terlalu besar untuk lolos, sehingga tetap berada di dalam darah.",
+      f:"Ginjalmu menyaring sekitar 180 liter cairan setiap hari — cukup untuk mengisi bak mandi." },
+    { k:"TAHAP 2 · REABSORPSI", t:"Mengambil kembali yang baik",
+      b:"Saat filtrat mengalir di sepanjang tubulus ginjal yang berkelok, dindingnya mengambil kembali semua yang ingin dipertahankan tubuh. Nutrisi (hijau) diambil kembali lebih dulu, air (biru) menyusul di sepanjang jalur, dan ion mineral (cyan) diseimbangkan di lengkung dan tubulus distal. Kapiler yang memeluk tubulus membawa semuanya kembali ke aliran darah.",
+      f:"Sekitar 99% air yang disaring diserap kembali — tanpa tahap ini kamu akan kehilangan 180 liter sehari." },
+    { k:"TAHAP 3 · URINE", t:"Sisanya menjadi urine",
+      b:"Hanya limbah yang tersisa: urea dan sisa metabolisme lainnya, berwarna kuning, plus sedikit air. Duktus kolektivus membawa cairan pekat ini ke bawah. Ia menetes ke pelvis ginjal lalu mengalir ke kandung kemih sebagai urine.",
+      f:"Kurang dari 1% cairan yang disaring benar-benar keluar dari tubuh — hanya sekitar 1,5 liter sehari." }
+  ],
+  labels: {
+    glomerulus:{ t:"Glomerulus", b:"Gulungan rapat kapiler yang bocor. Tekanan darah di sini memaksa air dan partikel kecil terlarut keluar dari darah — langkah pertama filtrasi.",
+      f:"Tersimpan di dalam dua ginjal sebesar kepalan tangan, seluruh saringan tubuhmu luasnya sekitar satu meter persegi." },
+    bowman:{ t:"Kapsula Bowman", b:"Pembungkus berbentuk cangkir di sekitar glomerulus. Ia menampung cairan yang diperas dari darah lalu menyalurkannya ke tubulus ginjal." },
+    artery:{ t:"Arteri ginjal", b:"Darah tiba dari jantung melalui arteri ginjal. Ia menyempit menjadi arteriol kecil, yang menaikkan tekanan tepat sebelum tempat penyaringan." },
+    pct:{ t:"Tubulus proksimal", b:"Bagian pertama tubulus yang paling berkelok. Hampir semua nutrisi dan sebagian besar air diserap kembali ke darah di sini." },
+    loop:{ t:"Lengkung Henle", b:"Lekukan bentuk U jauh ke dalam medula. Air keluar dari bagian yang menurun dan garam dipompa keluar dari bagian yang menanjak — begini cara ginjal memekatkan urine." },
+    dct:{ t:"Tubulus distal", b:"Zona penyetelan halus: tubuh mengatur tepat berapa banyak garam dan air yang disimpan, sesuai kebutuhan saat itu." },
+    duct:{ t:"Duktus kolektivus", b:"Beberapa nefron bermuara ke satu duktus kolektivus. Apa pun yang tetap di dalam cairan mulai dari sini menjadi urine." },
+    cap:{ t:"Kapiler peritubular", b:"Jaringan kapiler yang memeluk setiap lekuk tubulus, mengambil air, nutrisi, dan garam yang diserap kembali lalu mengembalikannya ke aliran darah." },
+    bladder:{ t:"Menuju kandung kemih", b:"Urine menetes dari duktus kolektivus ke pelvis ginjal, lalu berjalan turun melalui ureter ke kandung kemih — siap keluar dari tubuh." }
+  }
+};
+
+const STAGE_CAM = [
+  [[2,2.5,45],      [0.4,0.8,0]],
+  [[-15,10,15.5],   [-9.4,5.2,0]],
+  [[3,8.5,22],      [2.4,2.8,0]],
+  [[19,-3.5,16],    [11,-3.5,0]]
+];
+const STAGE_EMPH = [
+  { rbc:1, filtrate:1,   water:1,   nutrient:1,   ion:1,   waste:1 },
+  { rbc:1, filtrate:1,   water:.25, nutrient:.2,  ion:.2,  waste:.25 },
+  { rbc:.7,filtrate:.55, water:1,   nutrient:1,   ion:1,   waste:.15 },
+  { rbc:.2,filtrate:.75, water:.35, nutrient:.12, ion:.15, waste:1 }
+];
+const FOCUS = {
+  glomerulus:{ cam:[[-14,10,15.5],  [-9.6,5.4,0]],  stage:1 },
+  bowman:{     cam:[[-16.5,6.5,13], [-10.3,4.8,0]], stage:1 },
+  artery:{     cam:[[-24,12,17],    [-14,7.2,0.5]], stage:1 },
+  pct:{        cam:[[-6.5,10,14.5], [-4.2,5,0]],    stage:2 },
+  cap:{        cam:[[7,7.5,14.5],   [4.6,3.4,0]],   stage:2 },
+  loop:{       cam:[[7.5,-3.5,15.5],[3,-4,0]],      stage:2 },
+  dct:{        cam:[[10.5,10.5,13.5],[8.4,5.2,0]],  stage:2 },
+  duct:{       cam:[[19.5,-1.5,15], [11,-2.5,0]],   stage:3 },
+  bladder:{    cam:[[16.5,-7.5,13.5],[11,-11.5,0]], stage:3 }
+};
+
+/* ================= camera tween ================= */
+let camTween = null, lastInteract = performance.now();
+function flyTo(pos, tgt, dur=1500){
+  camTween = { p0:camera.position.clone(), t0:controls.target.clone(),
+               p1:V(...pos), t1:V(...tgt), st:performance.now(), dur };
+}
+controls.addEventListener('start', ()=>{ lastInteract = performance.now(); camTween = null; });
+function updateTween(){
+  if(!camTween) return;
+  const k = Math.min(1, (performance.now()-camTween.st)/camTween.dur);
+  const e = easeIO(k);
+  camera.position.lerpVectors(camTween.p0, camTween.p1, e);
+  controls.target.lerpVectors(camTween.t0, camTween.t1, e);
+  if(k >= 1) camTween = null;
+}
+
+/* ================= info card ================= */
+const card = document.getElementById('card');
+function showCard(kick, title, body, fact){
+  document.getElementById('cKick').textContent = kick;
+  document.getElementById('cTitle').textContent = title;
+  document.getElementById('cBody').textContent = body;
+  const f = document.getElementById('cFact');
+  if(fact){ f.style.display = 'flex'; f.querySelector('span').textContent = fact; }
+  else f.style.display = 'none';
+  card.classList.add('on');
+}
+document.getElementById('cardClose').addEventListener('click', ()=>card.classList.remove('on'));
+
+/* ================= stages & spotlight ================= */
+let curStage = 0, spotlight = null;
+const sbtns = [...document.querySelectorAll('.sbtn')];
+function setActiveStage(i){ curStage = i; sbtns.forEach((b,j)=>b.classList.toggle('active', j===i)); }
+function clearSpot(){
+  spotlight = null;
+  document.querySelectorAll('.lrow[data-type]').forEach(r=>r.classList.remove('active'));
+}
+function setStage(i){
+  setActiveStage(i); clearSpot(); setEmphasis(STAGE_EMPH[i]);
+  flyTo(...STAGE_CAM[i]); lastInteract = performance.now();
+  const s = INFO.stages[i]; showCard(s.k, s.t, s.b, s.f);
+}
+sbtns.forEach(b => b.addEventListener('click', ()=>setStage(+b.dataset.stage)));
+
+document.querySelectorAll('.lrow[data-type]').forEach(r => r.addEventListener('click', ()=>{
+  const k = r.dataset.type;
+  if(spotlight === k){ clearSpot(); setEmphasis(STAGE_EMPH[curStage]); }
+  else {
+    spotlight = k;
+    document.querySelectorAll('.lrow[data-type]').forEach(x=>x.classList.toggle('active', x===r));
+    const o = { rbc:.08, filtrate:.08, water:.08, nutrient:.08, ion:.08, waste:.08 }; o[k] = 1;
+    setEmphasis(o);
+  }
+  lastInteract = performance.now();
+}));
+
+function focusLabel(id){
+  const F = FOCUS[id]; if(!F) return;
+  setActiveStage(F.stage); clearSpot(); setEmphasis(STAGE_EMPH[F.stage]);
+  flyTo(...F.cam); lastInteract = performance.now();
+  const n = INFO.labels[id]; showCard('BAGIAN DARI NEFRON', n.t, n.b, n.f || null);
+}
+
+/* ================= floating labels with leader lines ================= */
+const labelsWrap = document.getElementById('labels'), wires = document.getElementById('wires');
+const SVGNS = 'http://www.w3.org/2000/svg';
+const LABEL_DEFS = [
+  { id:'artery',     text:'Darah masuk — arteri ginjal',            dot:'#d8342c', a:V(-16.8,8.4,2.4),  o:[-8,-46] },
+  { id:'glomerulus', text:'Glomerulus · penyaring',                 dot:'#d8342c', a:V(-9.8,8.6,0),     o:[54,-40] },
+  { id:'bowman',     text:'Kapsula Bowman',                         dot:'#f0c3ba', a:V(-12.9,4.4,0.8),  o:[-64,36] },
+  { id:'pct',        text:'Tubulus proksimal · nutrisi kembali',    dot:'#66c98d', a:V(-3.5,7.5,-0.6),  o:[-14,-58] },
+  { id:'cap',        text:'Kapiler · perjalanan kembali',           dot:'#e06a5f', a:V(5.9,1.5,1.2),   o:[92,20] },
+  { id:'loop',       text:'Lengkung Henle · air & garam kembali',   dot:'#3fd3de', a:V(3.3,-8.1,0),     o:[-30,48] },
+  { id:'dct',        text:'Tubulus distal · penyetelan halus',      dot:'#58b8ee', a:V(8.9,7.0,0),      o:[36,-52] },
+  { id:'duct',       text:'Duktus kolektivus · urine',              dot:'#f2a03d', a:V(12.8,-0.5,0),    o:[80,-6] },
+  { id:'bladder',    text:'Menuju kandung kemih',                   dot:'#f2c45e', a:V(11.6,-13.2,0),   o:[74,6] },
+  { text:'KORTEKS — LAPISAN LUAR',  a:V(-14,12.2,-2), o:[0,0], ghost:true },
+  { text:'MEDULA — LAPISAN DALAM', a:V(4.6,-5.4,4.9),o:[0,0], ghost:true }
+];
+const labelObjs = LABEL_DEFS.map(def => {
+  const el = document.createElement('div');
+  if(def.ghost){ el.className = 'pill ghost'; el.textContent = def.text; }
+  else {
+    el.className = 'pill';
+    el.innerHTML = `<span class="ldot" style="background:${def.dot}"></span>${def.text}`;
+    el.addEventListener('click', ()=>focusLabel(def.id));
+  }
+  labelsWrap.appendChild(el);
+  let ln = null;
+  if(!def.ghost){
+    ln = document.createElementNS(SVGNS, 'line');
+    ln.setAttribute('stroke', 'rgba(20,54,84,0.38)'); ln.setAttribute('stroke-width', '1');
+    wires.appendChild(ln);
+  }
+  const dot = document.createElementNS(SVGNS, 'circle');
+  dot.setAttribute('r', '2.4'); dot.setAttribute('fill', 'rgba(20,54,84,0.45)');
+  wires.appendChild(dot);
+  return { def, el, ln, dot, w:0, h:0 };
+});
+function measure(){ labelObjs.forEach(L => { L.w = L.el.offsetWidth; L.h = L.el.offsetHeight; }); }
+measure();
+if(document.fonts) document.fonts.ready.then(measure);
+
+let labelsOff = false;
+function updateHUD(){
+  const W = innerWidth, H = innerHeight;
+  for(const L of labelObjs){
+    const d = L.def;
+    PV.copy(d.a).add(group.position);
+    const dist = camera.position.distanceTo(PV);
+    PV.project(camera);
+    if(labelsOff || PV.z > 1){
+      L.el.style.opacity = 0;
+      if(L.ln) L.ln.setAttribute('stroke-opacity', '0');
+      L.dot.setAttribute('fill-opacity', '0');
+      continue;
+    }
+    const x = (PV.x*0.5+0.5)*W, y = (-PV.y*0.5+0.5)*H;
+    const op = Math.max(0.15, Math.min(1, 1.45 - dist/62));
+    const sc = Math.max(0.75, Math.min(1.05, 1.12 - dist/130));
+    const cx = x + d.o[0]*sc, cy = y + d.o[1]*sc;
+    L.el.style.opacity = op;
+    L.el.style.transform = `translate(${cx}px,${cy}px) translate(-50%,-50%) scale(${sc})`;
+    const hw = (L.w*sc)/2, hh = (L.h*sc)/2;
+    const px = Math.max(cx-hw, Math.min(cx+hw, x)), py = Math.max(cy-hh, Math.min(cy+hh, y));
+    if(L.ln){
+      L.ln.setAttribute('x1', x); L.ln.setAttribute('y1', y);
+      L.ln.setAttribute('x2', px); L.ln.setAttribute('y2', py);
+      L.ln.setAttribute('stroke-opacity', op*0.9);
+    }
+    L.dot.setAttribute('cx', x); L.dot.setAttribute('cy', y);
+    L.dot.setAttribute('fill-opacity', op*0.9);
+  }
+}
+
+/* ================= top-right controls ================= */
+let paused = false, speedMul = 1;
+const speeds = [1,2,0.5], speedLabels = ['1×','2×','½'];
+const btnPlay = document.getElementById('btnPlay');
+btnPlay.addEventListener('click', ()=>{
+  paused = !paused;
+  document.getElementById('icoPause').style.display = paused ? 'none' : 'block';
+  document.getElementById('icoPlay').style.display  = paused ? 'block' : 'none';
+  btnPlay.dataset.tip = paused ? 'Jalankan aliran' : 'Jeda aliran';
+  lastInteract = performance.now();
+});
+let spIdx = 0;
+const btnSpeed = document.getElementById('btnSpeed');
+btnSpeed.addEventListener('click', ()=>{
+  spIdx = (spIdx+1)%speeds.length; speedMul = speeds[spIdx];
+  btnSpeed.textContent = speedLabels[spIdx]; lastInteract = performance.now();
+});
+const btnLabels = document.getElementById('btnLabels');
+btnLabels.addEventListener('click', ()=>{
+  labelsOff = !labelsOff; btnLabels.classList.toggle('off', labelsOff);
+  lastInteract = performance.now();
+});
+document.getElementById('btnReset').addEventListener('click', ()=>setStage(0));
+
+/* graphics quality: High (bloom+shadow) → Med (shadow only) → Low (neither, pixelRatio 1) */
+const qModes = [
+  { tag:'HQ', tip:'Kualitas grafis: Tinggi' },
+  { tag:'MQ', tip:'Kualitas grafis: Sedang' },
+  { tag:'LQ', tip:'Kualitas grafis: Rendah' }
+];
+let qIdx = 0;
+const btnQuality = document.getElementById('btnQuality');
+function applyQuality(){
+  const hi = qIdx === 0;
+  bloomPass.enabled = hi;
+  key.castShadow = qIdx !== 2;
+  const pr = qIdx === 2 ? 1 : Math.min(devicePixelRatio, 2);
+  renderer.setPixelRatio(pr); composer.setPixelRatio(pr);
+  renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight);
+  btnQuality.textContent = qModes[qIdx].tag;
+  btnQuality.dataset.tip = qModes[qIdx].tip;
+  lastInteract = performance.now();
+}
+btnQuality.addEventListener('click', ()=>{ autoQ = false; qIdx = (qIdx+1)%qModes.length; applyQuality(); });
+/* auto-quality: step down HQ→MQ→LQ while the first seconds run below 30 fps
+   (user override via the button disables it) */
+let autoQ = true, qFrames = 0, qTime = 0;
+function autoQualityTick(dt){
+  if(!autoQ || qIdx >= 2) return;
+  qFrames++; qTime += dt;
+  if(qTime >= 3.5){
+    const fps = qFrames/qTime; qFrames = 0; qTime = 0;
+    if(fps < 30){ const li = lastInteract; qIdx++; applyQuality(); lastInteract = li; }
+    else autoQ = false;
+  }
+}
+
+/* ================= resize ================= */
+function setWiresSize(){ wires.setAttribute('width', innerWidth); wires.setAttribute('height', innerHeight); }
+setWiresSize();
+addEventListener('resize', ()=>{
+  camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  composer.setSize(innerWidth, innerHeight);
+  setWiresSize(); measure();
+});
+
+/* ================= main loop ================= */
+const clock = new THREE.Clock();
+let elapsed = 0;
+function loop(){
+  requestAnimationFrame(loop);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const sim = paused ? 0 : dt*speedMul;
+  elapsed += sim;
+
+  updateTween();
+  controls.autoRotate = (performance.now()-lastInteract > 15000) && !camTween;
+  controls.update();
+
+  /* heartbeat: 72 bpm thump swells the tuft ~2% (driven by elapsed so pause freezes it) */
+  const pulseS = Math.sin(elapsed*2*Math.PI*1.2);
+  const pulseWave = pulseS>0 ? pulseS*pulseS : 0;
+  updateFlow(sysRBC, sim, 1+0.3*pulseWave); updateFlow(sysFilt, sim); updateFlow(sysWaste, sim);
+  updateReabs(sysNut, sim); updateReabs(sysIon, sim); updateReabs(sysWater, sim);
+  sysSeep.update(sim);
+  tuft.scale.setScalar(1+0.02*pulseWave);
+  autoQualityTick(dt);
+  updateEmphasis(dt);
+  updateDrips(elapsed);
+  updateDust(elapsed);
+  group.position.y = Math.sin(elapsed*0.45)*0.15;
+
+  composer.render();
+  updateHUD();
+}
+loop();
+
+/* entrance: glide in from afar, then open the overview card */
+flyTo(...STAGE_CAM[0], 2200);
+setTimeout(()=>{
+  const s = INFO.stages[0]; showCard(s.k, s.t, s.b, s.f);
+}, 1500);
+setTimeout(()=>document.getElementById('veil').classList.add('gone'), 350);
+</script>
+</body>
+</html>
