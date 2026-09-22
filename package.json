@@ -53,6 +53,9 @@
         "nsis"
       ]
     },
+    "asarUnpack": [
+      "dist/videos/**/*"
+    ],
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,

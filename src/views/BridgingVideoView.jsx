@@ -9,7 +9,7 @@ export default function BridgingVideoView() {
   const [needsUserGesture, setNeedsUserGesture] = useState(false);
 
   // Sumber video bridging
-  const videoSrc = "/videos/bridging.mp4";
+  const videoSrc = "./videos/bridging.mp4";
 
   // Coba autoplay saat komponen dimuat
   useEffect(() => {
