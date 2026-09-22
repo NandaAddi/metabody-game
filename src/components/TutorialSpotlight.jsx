@@ -98,7 +98,7 @@ export default function TutorialSpotlight() {
           <div className="tutorial-avatar-mini">
             <div className="tutorial-avatar-glow" />
             <img
-              src="/src/assets/simeta/simeta_idle_happy.png"
+              src="/simeta/simeta_idle_happy.png"
               alt="Si Meta Tutor"
               className="tutorial-simeta-img"
             />

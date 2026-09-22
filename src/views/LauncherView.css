@@ -9,7 +9,7 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background-image: url('/src/assets/backgrounds/bg_main_menu.png');
+  background-image: url('/backgrounds/bg_main_menu.png');
   background-size: cover;
   background-position: center;
   display: flex;

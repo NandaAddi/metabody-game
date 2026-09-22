@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Electron build output — file .exe tidak perlu di-push ke GitHub
+release/
+
+# Video besar — tersedia local di src/assets/video-sistem/ dan public/videos/
+# Jangan push ke repo (melebihi limit GitHub 100MB)
+public/videos/

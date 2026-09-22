@@ -57,7 +57,7 @@ export default function LauncherView() {
       <header className="arcade-topbar">
         <div className="arcade-brand">
           <img
-            src="/src/assets/branding/icon_app_metabody.png"
+            src="/branding/icon_app_metabody.png"
             alt="METABODY Icon"
             className="arcade-brand-icon"
           />
@@ -97,7 +97,7 @@ export default function LauncherView() {
             {/* Bayangan / Pedestal Cahaya di Bawah Kaki */}
             <div className="arcade-hero-pedestal" />
             <img
-              src="/src/assets/simeta/simeta_idle_happy.png"
+              src="/simeta/simeta_idle_happy.png"
               alt="Si Meta Karakter"
               className="arcade-hero-avatar-img"
             />
@@ -109,7 +109,7 @@ export default function LauncherView() {
           {/* Logo & Tagline */}
           <div className="arcade-menu-brand-box">
             <img
-              src="/src/assets/branding/logo_metabody_main.png"
+              src="/branding/logo_metabody_main.png"
               alt="METABODY Logo"
               className="arcade-menu-logo"
             />

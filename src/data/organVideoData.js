@@ -1,14 +1,19 @@
 /**
  * Data Definisi Video Edukasi Fisiologi Tubuh Si Meta
  * SMP Kelas VIII - Kurikulum Merdeka (SMPN 25 Malang - Ibu Endang)
+ *
+ * Video disajikan dari folder /videos/ (public statis) agar tidak di-bundle Vite.
+ * Di web (Cloudflare), video otomatis di-skip; di desktop Electron tersedia penuh.
  */
 
-import videoIntestine from "../assets/video-sistem/video sistem pencernaan.mp4";
-import videoHeart from "../assets/video-sistem/VIDEO SISTEM PEREDARAN DARAH.mp4";
-import videoLungs from "../assets/video-sistem/VIDEO SISTEM PERNAPASAN.mp4";
-import videoKidneys from "../assets/video-sistem/VIDEO SISTEM EKSKRESI GINJAL.mp4";
-import videoLiver from "../assets/video-sistem/VIDEO SISTEM EKSKRESI PABRIK HATI.mp4";
-import videoSkin from "../assets/video-sistem/VIDEO SISTEM EKSKRESI KULIT.mp4";
+// Path statis ke /public/videos/ — tidak di-bundle Vite (tidak dihash)
+const videoIntestine  = "./videos/video sistem pencernaan.mp4";
+const videoHeart      = "./videos/VIDEO SISTEM PEREDARAN DARAH.mp4";
+const videoLungs      = "./videos/VIDEO SISTEM PERNAPASAN.mp4";
+const videoKidneys    = "./videos/VIDEO SISTEM EKSKRESI GINJAL.mp4";
+const videoLiver      = "./videos/VIDEO SISTEM EKSKRESI PABRIK HATI.mp4";
+const videoSkin       = "./videos/VIDEO SISTEM EKSKRESI KULIT.mp4";
+
 
 export const ORGAN_VIDEO_DATA = {
   intestine: {

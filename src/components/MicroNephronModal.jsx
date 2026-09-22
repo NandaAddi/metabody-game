@@ -278,7 +278,7 @@ export default function MicroNephronModal() {
         }}>
           {/* Nephron Illustration */}
           <img
-            src="/src/assets/micro/micro_nephron_unit.png"
+            src="/micro/micro_nephron_unit.png"
             alt="Diagram Anatomi Nefron Ginjal 3 Tahap"
             style={{
               width: "100%",

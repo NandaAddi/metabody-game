@@ -5,4 +5,9 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react()],
   base: './',
+  // Jangan bundle file .mp4 sebagai modul — biarkan diakses sebagai path statis dari /public/videos/
+  assetsInclude: [],
+  build: {
+    assetsInlineLimit: 0,
+  }
 })

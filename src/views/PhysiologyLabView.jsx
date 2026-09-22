@@ -61,7 +61,7 @@ export default function PhysiologyLabView() {
         {/* Identitas Brand & Judul */}
         <div className="physiology-lab-brand">
           <img
-            src="/src/assets/branding/icon_app_metabody.png"
+            src="/branding/icon_app_metabody.png"
             alt="METABODY"
             className="physiology-lab-brand-icon"
           />

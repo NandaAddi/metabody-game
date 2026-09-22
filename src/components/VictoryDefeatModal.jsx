@@ -112,7 +112,7 @@ export default function VictoryDefeatModal() {
             {/* Lencana / Bintang Kemenangan */}
             <div style={{ margin: "4px 0 12px" }}>
               <img
-                src="/src/assets/rewards/badges_individual_grand_champion.png"
+                src="/rewards/badges_individual_grand_champion.png"
                 alt="Medali Juara"
                 style={{
                   width: "110px",
@@ -200,7 +200,7 @@ export default function VictoryDefeatModal() {
             {/* Si Meta Kolaps (Safe Failure Humanistik) */}
             <div style={{ margin: "4px 0 12px" }}>
               <img
-                src="/src/assets/simeta/simeta_dizzy_collapse.png"
+                src="/simeta/simeta_dizzy_collapse.png"
                 alt="Si Meta Kolaps"
                 style={{ width: "115px", height: "115px", objectFit: "contain" }}
               />

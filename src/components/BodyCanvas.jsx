@@ -150,7 +150,7 @@ export default function BodyCanvas() {
       {/* 1. Karakter Si Meta, Kanvas Sirkulasi & Hotspot Organ (Terkelompok untuk Penataan Vertikal) */}
       <div className="simeta-character-container">
         <img
-          src={`/src/assets/simeta/${currentPose}`}
+          src={`/simeta/${currentPose}`}
           alt="Si Meta Avatar"
           className={`simeta-natural-avatar ${flashClass}`}
           style={{

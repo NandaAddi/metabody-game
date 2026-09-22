@@ -117,7 +117,7 @@ export default function CharacterDialogBox() {
         <div className="dialog-portrait-wrapper">
           <div className="dialog-portrait-glow" />
           <img
-            src={`/src/assets/simeta/${currentDialogue.pose}`}
+            src={`/simeta/${currentDialogue.pose}`}
             alt={currentDialogue.speaker}
             className="dialog-portrait-img"
           />
