@@ -1,7 +1,9 @@
 {
-  "name": "metabody-app",
+  "name": "metabody-game",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Game Simulasi Edukasi Fisiologi & Homeostasis Tubuh Manusia — Kurikulum Merdeka IPA SMP Kelas VIII",
+  "author": "Nanda Addi <nnvnxx.10@gmail.com>",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
